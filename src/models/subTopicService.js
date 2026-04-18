@@ -1,12 +1,14 @@
 import axios from 'axios';
 
+const BASE_URL = '/api/subtopics';
+
 const subTopicService = {
     /**
      * Fetch all sub-topics from the production registry
      */
     getSubTopics: async () => {
         try {
-            const response = await axios.get('/api/subtopics');
+            const response = await axios.get(BASE_URL);
             // Assuming the production API returns { data: [...], success: true }
             return {
                 subTopics: response.data?.data || [],
@@ -23,7 +25,7 @@ const subTopicService = {
      */
     getSubTopicById: async (id) => {
         try {
-            const response = await axios.get(`/api/subtopics/${id}`);
+            const response = await axios.get(`${BASE_URL}/${id}`);
             return response.data?.data;
         } catch (error) {
             console.error(`Error fetching detail for sub-topic ${id}:`, error);
@@ -36,7 +38,7 @@ const subTopicService = {
      */
     createSubTopic: async (data) => {
         try {
-            const response = await axios.post('/api/subtopics', data);
+            const response = await axios.post(BASE_URL, data);
             return response.data;
         } catch (error) {
             console.error('Deployment failure:', error);
@@ -49,7 +51,7 @@ const subTopicService = {
      */
     updateSubTopic: async (id, data) => {
         try {
-            const response = await axios.put(`/api/subtopics/${id}`, data);
+            const response = await axios.put(`${BASE_URL}/${id}`, data);
             return response.data;
         } catch (error) {
             console.error('Synchronization failure:', error);
@@ -62,7 +64,7 @@ const subTopicService = {
      */
     deleteSubTopic: async (id) => {
         try {
-            const response = await axios.delete(`/api/subtopics/${id}`);
+            const response = await axios.delete(`${BASE_URL}/${id}`);
             return response.data;
         } catch (error) {
             console.error('Termination failure:', error);

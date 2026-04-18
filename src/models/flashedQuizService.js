@@ -1,12 +1,12 @@
 import axios from 'axios';
 
-const API_BASE = '/api/flashed-quizzes';
+const BASE_URL = '/api/flashed-quizzes';
 
 const flashedQuizService = {
     // Fetch all quizzes
     getQuizzes: async () => {
         try {
-            const response = await axios.get(API_BASE);
+            const response = await axios.get(BASE_URL);
             return response.data;
         } catch (error) {
             console.error('Error fetching flashed quizzes:', error);
@@ -14,13 +14,13 @@ const flashedQuizService = {
         }
     },
 
-    // Create a new quiz
-    createQuiz: async (data) => {
+    // Add a new quiz
+    addQuiz: async (data) => {
         try {
-            const response = await axios.post(API_BASE, data);
+            const response = await axios.post(BASE_URL, data);
             return response.data;
         } catch (error) {
-            console.error('Error creating flashed quiz:', error);
+            console.error('Error adding flashed quiz:', error);
             throw error;
         }
     },
@@ -28,7 +28,7 @@ const flashedQuizService = {
     // Update an existing quiz
     updateQuiz: async (id, data) => {
         try {
-            const response = await axios.put(`${API_BASE}/${id}`, data);
+            const response = await axios.put(`${BASE_URL}/${id}`, data);
             return response.data;
         } catch (error) {
             console.error('Error updating flashed quiz:', error);
@@ -39,7 +39,7 @@ const flashedQuizService = {
     // Delete a quiz
     deleteQuiz: async (id) => {
         try {
-            const response = await axios.delete(`${API_BASE}/${id}`);
+            const response = await axios.delete(`${BASE_URL}/${id}`);
             return response.data;
         } catch (error) {
             console.error('Error deleting flashed quiz:', error);

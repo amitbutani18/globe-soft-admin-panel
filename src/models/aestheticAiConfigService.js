@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = 'https://seahorse-app-doers.ondigitalocean.app/api';
+const BASE_URL = '/api';
 
 const aestheticAiConfigService = {
     get: async () => {

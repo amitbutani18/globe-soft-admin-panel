@@ -1,12 +1,12 @@
 import axios from 'axios';
 
-const API_BASE = '/api/image-prompts';
+const BASE_URL = '/api/image-prompts';
 
 const imagePromptService = {
     // Fetch all prompts with pagination
-    getPrompts: async (page = 1, limit = 10) => {
+    getPrompts: async (page = 1, limit = 50) => {
         try {
-            const response = await axios.get(API_BASE, {
+            const response = await axios.get(BASE_URL, {
                 params: { page, limit }
             });
             return response.data; // Expected { data: [...], pagination: {...} }
@@ -16,13 +16,13 @@ const imagePromptService = {
         }
     },
 
-    // Create a new prompt
-    createPrompt: async (data) => {
+    // Add a new prompt
+    addPrompt: async (data) => {
         try {
-            const response = await axios.post(API_BASE, data);
+            const response = await axios.post(BASE_URL, data);
             return response.data;
         } catch (error) {
-            console.error('Error creating image prompt:', error);
+            console.error('Error adding image prompt:', error);
             throw error;
         }
     },
@@ -30,7 +30,7 @@ const imagePromptService = {
     // Update an existing prompt
     updatePrompt: async (id, data) => {
         try {
-            const response = await axios.put(`${API_BASE}/${id}`, data);
+            const response = await axios.put(`${BASE_URL}/${id}`, data);
             return response.data;
         } catch (error) {
             console.error('Error updating image prompt:', error);
@@ -41,7 +41,7 @@ const imagePromptService = {
     // Delete a prompt
     deletePrompt: async (id) => {
         try {
-            const response = await axios.delete(`${API_BASE}/${id}`);
+            const response = await axios.delete(`${BASE_URL}/${id}`);
             return response.data;
         } catch (error) {
             console.error('Error deleting image prompt:', error);
