@@ -1,0 +1,30 @@
+import axios from 'axios';
+
+const API_BASE = '/api/user-login-config';
+
+const userLoginConfigService = {
+    // Fetch configuration
+    getConfig: async () => {
+        try {
+            const response = await axios.get(API_BASE);
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching user login config:', error);
+            throw error;
+        }
+    },
+
+    // Update configuration
+    // Based on the response structure, we use the ID for PUT
+    updateConfig: async (id, data) => {
+        try {
+            const response = await axios.put(`${API_BASE}/${id}`, data);
+            return response.data;
+        } catch (error) {
+            console.error('Error updating user login config:', error);
+            throw error;
+        }
+    }
+};
+
+export default userLoginConfigService;
