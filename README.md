@@ -47,12 +47,6 @@ A premium, glassmorphic administrative dashboard built with React and Vite, desi
 
 The application communicates with a DigitalOcean-hosted backend. Network requests are proxied via `vite.config.js`:
 
-- **Active Backend**: `https://seahorse-app-doers.ondigitalocean.app`
-- **Prefix**: `/api`
-
-### Ads Management API
-- **GET** `/api/ads`: Fetch units.
-- **PATCH** `/api/ads/:id`: Partially update configurations.
 
 ## 📂 Project Structure
 
@@ -61,5 +55,4 @@ The application communicates with a DigitalOcean-hosted backend. Network request
 - `src/views/layouts/`: Global layout components.
 - `src/style.css`: Core design system and Tailwind directives.
 
----
-Built by Antigravity for Kali Linux Orchestration.
+---------------------------------------------------------------------------------------------------------------------------------
