@@ -19,18 +19,16 @@ const adConfigService = {
     },
 
     /**
-     * Update the ad configuration settings
-     * PUT /api/ad-configs/:id
+     * Partially update the ad configuration settings
+     * PATCH /api/ad-configs/:id
      */
-    updateAdConfig: async (payload) => {
+    updateAdConfig: async (id, data) => {
         try {
-            const { id, ...data } = payload;
             if (!id) throw new Error('Config ID is required for update');
-
-            const response = await axios.put(`${BASE_URL}/ad-configs/${id}`, data);
+            const response = await axios.patch(`${BASE_URL}/ad-configs/${id}`, data);
             return response.data;
         } catch (error) {
-            console.error('Error updating Ad Configuration:', error);
+            console.error('Error patching Ad Configuration:', error);
             throw error;
         }
     }

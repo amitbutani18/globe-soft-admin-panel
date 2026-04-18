@@ -30,17 +30,18 @@ const AdConfig = () => {
     const [configId, setConfigId] = useState(null);
     const [originalForm, setOriginalForm] = useState(null);
     const [form, setForm] = useState({
-        aiChatFreeCount: 3,
-        click: 4,
+        aiChatFreeCount: 0,
+        click: 0,
         cloudMain: '',
         communityMain: '',
         containerMain: '',
         showOpenAdInSplash: false,
-        native_ads_enabled: true,
-        showreview: true,
+        native_ads_enabled: false,
+        showreview: false,
         virtulizationMain: '',
         wslMain: '',
         openAiApiKey: '',
+        premium_click: 0,
     });
 
     const [loading, setLoading] = useState(true);
@@ -73,6 +74,7 @@ const AdConfig = () => {
                     virtulizationMain: data.virtulizationMain || '',
                     wslMain: data.wslMain || '',
                     openAiApiKey: data.openAiApiKey || '',
+                    premium_click: data.premium_click ?? 0,
                 };
                 setForm(loadedForm);
                 setOriginalForm(loadedForm);
@@ -115,6 +117,7 @@ const AdConfig = () => {
             virtulizationMain: '',
             wslMain: '',
             openAiApiKey: '',
+            premium_click: 0,
         });
         setIsEditing(false);
         setIsCreating(false);
@@ -169,7 +172,7 @@ const AdConfig = () => {
                 return;
             }
 
-            await adConfigService.updateAdConfig({ ...payload, id: configId });
+            await adConfigService.updateAdConfig(configId, payload);
             setSavedOn(Date.now());
             setOriginalForm({ ...form });
             setIsEditing(false);
@@ -415,6 +418,7 @@ const AdConfig = () => {
                                     <div className="border border-zinc-100 dark:border-zinc-800 rounded-3xl overflow-hidden bg-zinc-50/30 dark:bg-zinc-950/20">
                                         <ConfigRow label="Free Chat Count" field="aiChatFreeCount" icon={Activity} type="number" description="How many AI messages a guest user can send." />
                                         <ConfigRow label="Click Frequency" field="click" icon={MousePointer2} type="number" description="Interval threshold for user interactions." />
+                                        <ConfigRow label="Premium Click" field="premium_click" icon={Zap} type="number" description="Threshold for premium user interactions." />
                                         <ConfigRow
                                             label="OpenAI API Key"
                                             field="openAiApiKey"
