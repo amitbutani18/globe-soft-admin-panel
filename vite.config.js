@@ -62,19 +62,21 @@ export default defineConfig(({ mode }) => {
     build: {
       rollupOptions: {
         output: {
-          manualChunks: {
-            // React and core libraries
-            "react-vendor": [
-              "react",
-              "react-dom",
-              "react-router-dom",
-            ],
-            // Query and HTTP
-            "query-vendor": ["@tanstack/react-query", "axios"],
-            // UI and State
-            "ui-vendor": ["lucide-react", "zustand"],
-            // Other utilities
-            "utils-vendor": ["clsx", "tailwind-merge"],
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
+                return 'react-vendor'
+              }
+              if (id.includes('@tanstack/react-query') || id.includes('axios')) {
+                return 'query-vendor'
+              }
+              if (id.includes('lucide-react') || id.includes('zustand')) {
+                return 'ui-vendor'
+              }
+              if (id.includes('clsx') || id.includes('tailwind-merge')) {
+                return 'utils-vendor'
+              }
+            }
           },
         },
       },
