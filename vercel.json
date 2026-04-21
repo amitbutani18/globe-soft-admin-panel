@@ -5,6 +5,10 @@
             "destination": "https://seahorse-app-doers.ondigitalocean.app/api/$1"
         },
         {
+            "source": "/aesthetic-api/(.*)",
+            "destination": "https://shark-app-l2rx4.ondigitalocean.app/api/$1"
+        },
+        {
             "source": "/(.*)",
             "destination": "/index.html"
         }
