@@ -1,168 +1,204 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
-    Fingerprint,
     Plus,
-    Save,
     Search,
-    Trash2,
+    RefreshCw,
     Sparkles,
-    Clock,
-    MoreVertical,
+    Image as ImageIcon,
+    ChevronRight,
+    Calendar,
+    Pencil,
+    Trash2,
+    Eye,
+    X,
+    Filter,
     CheckCircle2,
+    ChevronsLeft,
+    ChevronsRight,
+    ChevronLeft,
+    Target,
+    PenTool,
+    Save,
+    Fingerprint
 } from 'lucide-react';
-
-const SAMPLE_PROMPTS = [
-    "Hyper-realistic architectural photography, 8k resolution, cinematic atmosphere, unreal engine 5 render...",
-    "Studio portrait lighting, bokeh background, professional DSLR, 50mm lens, golden hour...",
-];
+import imagePromptService from '../../../models/imagePromptService';
 
 const UserPrompt = () => {
     const [loading, setLoading] = useState(false);
-    const [promptsList, setPromptsList] = useState([]);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [newPrompt, setNewPrompt] = useState('');
+    const [promptData, setPromptData] = useState(null);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editValue, setEditValue] = useState('');
+    const [syncing, setSyncing] = useState(false);
 
-    const handleSubmit = useCallback(async (e) => {
-        e.preventDefault();
-        if (!newPrompt.trim()) return;
+    const fetchPrompt = useCallback(async () => {
         setLoading(true);
         try {
-            // await promptService.addPrompt({ promts: newPrompt });
-            alert('User Prompt added successfully!');
-            setNewPrompt('');
-            // Refresh list: setPromptsList(await promptService.getPrompts());
-        } catch {
-            alert('Failed to add User Prompt.');
+            const response = await imagePromptService.getPrompts(1, 1);
+            if (response && response.success && response.data && response.data.length > 0) {
+                const firstPrompt = response.data[0];
+                setPromptData(firstPrompt);
+                setEditValue(firstPrompt.promts || '');
+            }
+        } catch (error) {
+            console.error('Failed to fetch user prompt:', error);
         } finally {
             setLoading(false);
         }
-    }, [newPrompt]);
+    }, []);
 
-    const filteredPrompts = promptsList.filter(p =>
-        p.promts?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    useEffect(() => {
+        fetchPrompt();
+    }, [fetchPrompt]);
 
-    const isEmpty = promptsList.length === 0;
+    const handleUpdate = async () => {
+        if (!promptData?.id) return;
+        setSyncing(true);
+        try {
+            const response = await imagePromptService.updatePrompt(promptData.id, {
+                promts: editValue
+            });
+            if (response.success || response.message) {
+                setPromptData(prev => ({ ...prev, promts: editValue }));
+                setIsEditing(false);
+                alert('Prompt synchronized successfully');
+            }
+        } catch (error) {
+            const msg = error.response?.data?.message || error.message;
+            alert(`Sync Failed: ${msg}`);
+        } finally {
+            setSyncing(false);
+        }
+    };
 
     return (
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+
+            {/* ── Header ─────────────────────────────────────────────── */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">User Prompts</h1>
-                    <p className="text-zinc-500 dark:text-zinc-400 mt-1">Manage base prompts for mixing with sub-category content.</p>
+                    <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">Global Prompt Config</h1>
+                    <p className="text-zinc-500 dark:text-zinc-400 mt-1">
+                        Manage the primary AI instruction overlay for Aesthetic AI.
+                    </p>
+                </div>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={fetchPrompt}
+                        disabled={loading}
+                        className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-xl transition-all font-semibold text-sm text-zinc-600 dark:text-zinc-300 disabled:opacity-50"
+                    >
+                        <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                        Refresh
+                    </button>
+                    <button
+                        onClick={() => setIsEditing(!isEditing)}
+                        className={`flex items-center gap-2 px-6 py-2.5 rounded-xl transition-all font-semibold shadow-lg active:scale-95 text-sm uppercase tracking-widest ${isEditing
+                            ? 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                            : 'bg-emerald-600 text-white hover:bg-emerald-500 shadow-emerald-500/20'
+                            }`}
+                    >
+                        {isEditing ? <X className="w-5 h-5" /> : <Pencil className="w-5 h-5" />}
+                        {isEditing ? 'Cancel' : 'Configure'}
+                    </button>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Input Card */}
-                <div className="lg:col-span-1 space-y-6">
-                    <form onSubmit={handleSubmit} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl overflow-hidden shadow-sm shadow-indigo-500/5">
-                        <div className="p-6 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/20 flex items-center gap-3">
-                            <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
-                                <Plus className="w-5 h-5" />
+            {/* ── Primary Config Card ────────────────────────────────── */}
+            <div className="grid grid-cols-1 gap-6">
+                <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] overflow-hidden shadow-sm dark:shadow-2xl transition-all duration-500">
+                    <div className="p-8 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/20 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-600">
+                                <Fingerprint className="w-6 h-6" />
                             </div>
-                            <h2 className="text-lg font-bold uppercase tracking-tight">Add New Prompt</h2>
+                            <div>
+                                <h2 className="text-lg font-bold uppercase tracking-tight">Main Prompt Definition</h2>
+                                <p className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest">
+                                    Registry ID: {promptData?.id || 'Scanning...'}
+                                </p>
+                            </div>
                         </div>
-                        <div className="p-6 space-y-6">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Prompt Content</label>
-                                <textarea
-                                    value={newPrompt}
-                                    onChange={e => setNewPrompt(e.target.value)}
-                                    rows={8}
-                                    placeholder="Enter base prompt styles (e.g. 8k, masterpiece, cinematic lighting...)"
-                                    className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-4 py-4 text-sm focus:border-indigo-500 outline-none transition-all placeholder:text-zinc-400 dark:placeholder:text-zinc-700 leading-relaxed font-medium"
-                                />
-                            </div>
+                        {isEditing && (
                             <button
-                                type="submit"
-                                disabled={loading || !newPrompt.trim()}
-                                className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-black shadow-lg shadow-indigo-500/20 active:scale-95 transition-all uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 disabled:opacity-50"
+                                onClick={handleUpdate}
+                                disabled={syncing}
+                                className="flex items-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-emerald-500/20 active:scale-95 text-xs uppercase tracking-widest disabled:opacity-50"
                             >
-                                <Save className="w-4 h-4" />
-                                {loading ? 'Saving...' : 'Save Prompt'}
+                                {syncing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                Sync Change
                             </button>
-                        </div>
-                    </form>
-
-                    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 rounded-3xl space-y-4">
-                        <div className="flex items-center gap-3 text-emerald-500">
-                            <CheckCircle2 className="w-5 h-5" />
-                            <h3 className="text-xs font-black uppercase tracking-widest">Efficiency Tip</h3>
-                        </div>
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
-                            These prompts are mixed with sub-category prompts for non-premium users to maintain quality.
-                        </p>
-                    </div>
-                </div>
-
-                {/* List Card */}
-                <div className="lg:col-span-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl overflow-hidden shadow-sm flex flex-col">
-                    <div className="p-6 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/20 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <Fingerprint className="w-5 h-5 text-indigo-500" />
-                            <h2 className="text-lg font-bold uppercase tracking-tight">Active Prompts Repository</h2>
-                        </div>
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400" />
-                            <input
-                                type="text"
-                                placeholder="Search..."
-                                value={searchQuery}
-                                onChange={e => setSearchQuery(e.target.value)}
-                                className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl pl-9 pr-4 py-1.5 text-xs focus:border-indigo-500 outline-none transition-all"
-                            />
-                        </div>
+                        )}
                     </div>
 
-                    <div className="p-4 space-y-3 custom-scrollbar overflow-y-auto max-h-[600px] flex-1">
-                        {isEmpty ? (
-                            <>
-                                <div className="flex flex-col items-center justify-center py-10 text-zinc-400 opacity-30 gap-4">
-                                    <Sparkles className="w-12 h-12" />
-                                    <p className="text-sm font-black uppercase tracking-widest">No Prompts Found</p>
-                                    <p className="text-[10px] w-48 text-center leading-relaxed">Add your first base prompt in the left panel.</p>
-                                </div>
-                                {/* Sample data placeholders */}
-                                {SAMPLE_PROMPTS.map((text, i) => (
-                                    <div key={i} className="p-6 bg-zinc-50 dark:bg-zinc-950/40 border border-zinc-100 dark:border-zinc-800/60 rounded-2xl opacity-40 grayscale">
-                                        <div className="flex items-start justify-between gap-4">
-                                            <div className="space-y-3 flex-1">
-                                                <span className="text-[10px] font-black text-zinc-400 bg-zinc-400/10 px-2 py-0.5 rounded-full uppercase tracking-widest">Sample Data</span>
-                                                <p className="text-sm text-zinc-400 font-medium leading-relaxed italic">"{text}"</p>
-                                            </div>
-                                            <button disabled className="p-2 text-zinc-300">
-                                                <MoreVertical className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </>
+                    <div className="p-10">
+                        {loading ? (
+                            <div className="flex flex-col items-center justify-center py-20 gap-4 opacity-50">
+                                <RefreshCw className="w-10 h-10 animate-spin text-emerald-500" />
+                                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-400">Synchronizing Matrix...</p>
+                            </div>
+                        ) : !promptData ? (
+                            <div className="flex flex-col items-center justify-center py-20 gap-4 opacity-30">
+                                <Sparkles className="w-12 h-12 text-zinc-400" />
+                                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-400">Registry Entry Not Found</p>
+                            </div>
                         ) : (
-                            filteredPrompts.map((item, idx) => (
-                                <div key={item.id || idx} className="p-6 bg-zinc-50 dark:bg-zinc-950/40 border border-zinc-100 dark:border-zinc-800/60 rounded-2xl group relative hover:border-indigo-500/30 transition-all duration-300">
-                                    <div className="flex items-start justify-between gap-4">
-                                        <div className="space-y-3 flex-1">
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-[10px] font-black text-indigo-500 bg-indigo-500/10 px-2 py-0.5 rounded-full uppercase tracking-widest">
-                                                    ID: {item.id?.substring(0, 8) || 'N/A'}...
-                                                </span>
-                                                <Clock className="w-3 h-3 text-zinc-400" />
-                                                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-tighter">Added Recently</span>
-                                            </div>
-                                            <p className="text-sm text-zinc-600 dark:text-zinc-300 font-medium leading-relaxed italic line-clamp-3">
-                                                "{item.promts}"
+                            <div className="space-y-8">
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between px-2">
+                                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] flex items-center gap-2">
+                                            <Target className="w-3 h-3" /> Instruction Payload
+                                        </label>
+                                        <span className="text-[9px] font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full uppercase tracking-widest border border-emerald-500/20">
+                                            Live Status
+                                        </span>
+                                    </div>
+                                    {isEditing ? (
+                                        <textarea
+                                            value={editValue}
+                                            onChange={(e) => setEditValue(e.target.value)}
+                                            rows={8}
+                                            className="w-full bg-zinc-50 dark:bg-zinc-950 border border-emerald-500/30 rounded-[2rem] px-8 py-8 text-base focus:border-emerald-500 outline-none transition-all placeholder:text-zinc-400 dark:placeholder:text-zinc-700 leading-relaxed font-bold italic shadow-inner"
+                                            placeholder="Enter global prompt modifiers..."
+                                        />
+                                    ) : (
+                                        <div className="p-10 bg-zinc-50 dark:bg-zinc-950/40 border border-zinc-100 dark:border-zinc-800 rounded-[2.5rem] shadow-inner group">
+                                            <p className="text-zinc-700 dark:text-zinc-300 leading-[2] text-xl font-bold whitespace-pre-wrap italic">
+                                                "{promptData.promts}"
                                             </p>
                                         </div>
-                                        <button className="p-2 text-zinc-400 hover:text-rose-500 transition-colors">
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
+                                    )}
+                                </div>
+
+                                {/* Metadata Footer */}
+                                <div className="pt-8 border-t border-zinc-100 dark:border-zinc-800 flex flex-wrap items-center gap-6">
+                                    <div className="flex items-center gap-2">
+                                        <Calendar className="w-4 h-4 text-zinc-400" />
+                                        <div className="flex flex-col">
+                                            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Last Modified</span>
+                                            <span className="text-[11px] font-bold text-zinc-600 dark:text-zinc-400 font-mono">
+                                                {new Date(promptData.updatedAt || promptData.createdAt).toLocaleString()}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="h-8 w-[1px] bg-zinc-100 dark:bg-zinc-800 hidden sm:block"></div>
+                                    <div className="flex items-center gap-2">
+                                        <Sparkles className="w-4 h-4 text-emerald-500" />
+                                        <div className="flex flex-col">
+                                            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Architecture</span>
+                                            <span className="text-[11px] font-bold text-zinc-600 dark:text-zinc-400">Aesthetic AI Core</span>
+                                        </div>
                                     </div>
                                 </div>
-                            ))
+                            </div>
                         )}
                     </div>
                 </div>
+            </div>
+
+            <div className="flex items-center justify-center py-4">
+                <div className="h-[1px] w-12 bg-zinc-100 dark:bg-zinc-800"></div>
+                <p className="text-[9px] font-bold uppercase tracking-[0.5em] text-zinc-300 mx-4">Matrix Endpoint Active</p>
+                <div className="h-[1px] w-12 bg-zinc-100 dark:bg-zinc-800"></div>
             </div>
         </div>
     );

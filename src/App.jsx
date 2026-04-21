@@ -11,6 +11,7 @@ import Ads from './views/pages/aesthetic-ai/Ads';
 import UserPrompt from './views/pages/aesthetic-ai/UserPrompt';
 import ImageLimit from './views/pages/aesthetic-ai/ImageLimit';
 import PremiumBenefits from './views/pages/aesthetic-ai/PremiumBenefits';
+import AestheticAdConfig from './views/pages/aesthetic-ai/AdConfig';
 
 // Kali Linux
 import DailyBlogs from './views/pages/kali-linux/DailyBlogs';
@@ -19,7 +20,6 @@ import KaliAds from './views/pages/kali-linux/Ads';
 import AiConfig from './views/pages/kali-linux/AiConfig';
 import Content from './views/pages/kali-linux/Content';
 import FlashedQuiz from './views/pages/kali-linux/FlashedQuiz';
-import ImagePrompt from './views/pages/kali-linux/ImagePrompt';
 import Languages from './views/pages/kali-linux/Languages';
 import LevelQuizzes from './views/pages/kali-linux/LevelQuizzes';
 
@@ -35,6 +35,10 @@ import TranslatedSubtopicQuizzes from './views/pages/kali-linux/TranslatedSubtop
 import TranslatedSubtopic from './views/pages/kali-linux/TranslatedSubtopic';
 import TranslatedTopic from './views/pages/kali-linux/TranslatedTopic';
 
+// PromptVerse AI
+import Prompts from './views/pages/prompt-verse/Prompts';
+import Templates from './views/pages/prompt-verse/Templates';
+
 function App() {
     return (
         <Router>
@@ -49,9 +53,9 @@ function App() {
                     <Route path="subcategories" element={<Subcategory />} />
                     <Route path="ai-config" element={<AIConfig />} />
                     <Route path="ads" element={<Ads />} />
-                    <Route path="ad-config" element={<Ads />} />
-                    <Route path="user-prompt" element={<UserPrompt />} />
-                    <Route path="image-limit" element={<ImageLimit />} />
+                    <Route path="ad-config" element={<AestheticAdConfig />} />
+                    <Route path="image-prompt" element={<UserPrompt />} />
+                    <Route path="image-generation-limits" element={<ImageLimit />} />
                     <Route path="premium-benefits" element={<PremiumBenefits />} />
 
                     {/* Kali Linux */}
@@ -61,7 +65,6 @@ function App() {
                     <Route path="kali-ai-config" element={<AiConfig />} />
                     <Route path="kali-content" element={<Content />} />
                     <Route path="flashed-quiz" element={<FlashedQuiz />} />
-                    <Route path="image-prompt" element={<ImagePrompt />} />
                     <Route path="languages" element={<Languages />} />
                     <Route path="level-quizzes" element={<LevelQuizzes />} />
 
@@ -76,6 +79,10 @@ function App() {
                     <Route path="translated-subtopic-quizzes" element={<TranslatedSubtopicQuizzes />} />
                     <Route path="translated-subtopic" element={<TranslatedSubtopic />} />
                     <Route path="translated-topic" element={<TranslatedTopic />} />
+
+                    {/* PromptVerse AI */}
+                    <Route path="prompts" element={<Prompts />} />
+                    <Route path="templates" element={<Templates />} />
                 </Route>
             </Routes>
         </Router>
