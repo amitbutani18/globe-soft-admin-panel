@@ -1,15 +1,15 @@
 import axios from 'axios';
 
-const BASE_URL = '/api/image-prompts';
+const BASE_URL = '/aesthetic-api/user-prompts';
 
 const imagePromptService = {
     // Fetch all prompts with pagination
-    getPrompts: async (page = 1, limit = 50) => {
+    getPrompts: async (page = 1, limit = 10) => {
         try {
             const response = await axios.get(BASE_URL, {
                 params: { page, limit }
             });
-            return response.data; // Expected { data: [...], pagination: {...} }
+            return response.data; // Expected { success, data, pagination }
         } catch (error) {
             console.error('Error fetching image prompts:', error);
             throw error;

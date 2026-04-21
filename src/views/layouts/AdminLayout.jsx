@@ -44,7 +44,7 @@ function cn(...inputs) {
 
 const apps = [
     {
-        id: 'aesthic_ai',
+        id: 'aesthetic_ai',
         name: 'Aesthetic AI',
         icon: <Sparkles className="w-5 h-5" />,
         color: 'text-indigo-400',
@@ -52,14 +52,28 @@ const apps = [
         activeBorder: 'border-indigo-500/20',
         accent: 'indigo',
         subItems: [
-            { name: 'Category', path: '/categories', icon: <Layers className="w-4 h-4" /> },
-            { name: 'Subcategory', path: '/subcategories', icon: <Monitor className="w-4 h-4" /> },
-            { name: 'AI Config', path: '/ai-config', icon: <FileJson className="w-4 h-4" /> },
-            { name: 'Ads', path: '/ads', icon: <Megaphone className="w-4 h-4" /> },
-            { name: 'Ad Config', path: '/ad-config', icon: <Settings className="w-4 h-4" /> },
-            { name: 'User Prompt', path: '/user-prompt', icon: <Fingerprint className="w-4 h-4" /> },
-            { name: 'Image Limit', path: '/image-limit', icon: <Zap className="w-4 h-4" /> },
-            { name: 'Premium Benefits', path: '/premium-benefits', icon: <Star className="w-4 h-4" /> },
+            {
+                name: 'Content',
+                path: '/categories',
+                icon: <Layers className="w-4 h-4" />,
+                children: [
+                    { name: 'Category', path: '/categories', icon: <Layers className="w-4 h-4" /> },
+                    { name: 'Subcategory', path: '/subcategories', icon: <Monitor className="w-4 h-4" /> },
+                ]
+            },
+            {
+                name: 'App Setting',
+                path: '/ai-config',
+                icon: <Settings className="w-4 h-4" />,
+                children: [
+                    { name: 'Ad Config', path: '/ad-config', icon: <Settings className="w-4 h-4" /> },
+                    { name: 'Ads', path: '/ads', icon: <Megaphone className="w-4 h-4" /> },
+                    { name: 'AI Config', path: '/ai-config', icon: <FileJson className="w-4 h-4" /> },
+                    { name: 'Premium Benefits', path: '/premium-benefits', icon: <Star className="w-4 h-4" /> },
+                    { name: 'Image Limits', path: '/image-generation-limits', icon: <Cpu className="w-4 h-4" /> },
+                ]
+            },
+            { name: 'Image Prompt', path: '/image-prompt', icon: <Image className="w-4 h-4" /> },
         ]
     },
     {
@@ -86,7 +100,6 @@ const apps = [
             { name: 'Level Quizzes', path: '/level-quizzes', icon: <BarChart2 className="w-4 h-4" /> },
             { name: 'Flashed Quiz', path: '/flashed-quiz', icon: <Zap className="w-4 h-4" /> },
             { name: 'Story Learning', path: '/story-learning', icon: <BookMarked className="w-4 h-4" /> },
-            { name: 'Image Prompt', path: '/image-prompt', icon: <Image className="w-4 h-4" /> },
             {
                 name: 'Users Management',
                 path: '/kali-users',
@@ -263,7 +276,7 @@ const AdminLayout = () => {
             return isActive;
         });
 
-        const result = matched?.id ?? 'aesthic_ai';
+        const result = matched?.id ?? 'aesthetic_ai';
         console.log('Final active app:', result);
         return result;
     }, [location.pathname]);

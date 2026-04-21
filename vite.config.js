@@ -29,7 +29,8 @@ sanitizeViteEnvKeys()
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  const targetURL = env.VITE_BASE_URL
+  const targetURL = env.VITE_BASE_URL || "https://seahorse-app-doers.ondigitalocean.app"
+  const aestheticTargetURL = env.VITE_AESTHETIC_BASE_URL || "https://shark-app-l2rx4.ondigitalocean.app/api"
 
   return {
     plugins: [
@@ -50,6 +51,12 @@ export default defineConfig(({ mode }) => {
           target: targetURL,
           changeOrigin: true,
           secure: false,
+        },
+        '/aesthetic-api': {
+          target: aestheticTargetURL,
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/aesthetic-api/, ''),
         }
       }
     },
