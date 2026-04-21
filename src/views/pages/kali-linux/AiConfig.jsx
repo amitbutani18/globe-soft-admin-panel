@@ -80,7 +80,7 @@ const AiConfig = () => {
             setIsEditing(false); // Lock it again
             setTimeout(() => setSavedOn(null), 3000);
         } catch (err) {
-            alert(`Failed back sync update: ${err?.message}`);
+            alert(`Failed back sync patch: ${err?.message}`);
         } finally {
             setSaving(false);
         }
