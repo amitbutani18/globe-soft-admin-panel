@@ -35,7 +35,8 @@ const AdConfig = () => {
         cloudMain: '',
         communityMain: '',
         containerMain: '',
-        showOpenAdInSplash: false,
+        showOpenAdInSplash_android: false,
+        showOpenAdInSplash_ios: false,
         native_ads_enabled: false,
         showreview: false,
         virtulizationMain: '',
@@ -68,7 +69,8 @@ const AdConfig = () => {
                     cloudMain: data.cloudMain || '',
                     communityMain: data.communityMain || '',
                     containerMain: data.containerMain || '',
-                    showOpenAdInSplash: !!data.showOpenAdInSplash,
+                    showOpenAdInSplash_android: !!data.showOpenAdInSplash_android,
+                    showOpenAdInSplash_ios: !!data.showOpenAdInSplash_ios,
                     native_ads_enabled: !!data.native_ads_enabled,
                     showreview: !!data.showreview,
                     virtulizationMain: data.virtulizationMain || '',
@@ -111,7 +113,8 @@ const AdConfig = () => {
             cloudMain: '',
             communityMain: '',
             containerMain: '',
-            showOpenAdInSplash: false,
+            showOpenAdInSplash_android: false,
+            showOpenAdInSplash_ios: false,
             native_ads_enabled: false,
             showreview: false,
             virtulizationMain: '',
@@ -137,7 +140,7 @@ const AdConfig = () => {
             setCustomFields(prev => prev.filter((_, i) => i !== index));
         } else if (type === 'core') {
             // "Deleting" a core variable resets it to empty/0/false
-            const booleanFields = ['showOpenAdInSplash', 'native_ads_enabled', 'showreview'];
+            const booleanFields = ['showOpenAdInSplash_android', 'showOpenAdInSplash_ios', 'native_ads_enabled', 'showreview'];
             let defaultValue = '';
             if (booleanFields.includes(index)) {
                 defaultValue = false;
@@ -457,7 +460,8 @@ const AdConfig = () => {
                                         <p className="text-xs text-zinc-500 font-medium">Toggle monetization and platform review prompts.</p>
                                     </div>
                                     <div className="border border-zinc-100 dark:border-zinc-800 rounded-3xl overflow-hidden bg-zinc-50/30 dark:bg-zinc-950/20">
-                                        <SettingToggle label="Splash Ads" field="showOpenAdInSplash" icon={Zap} description="Show high-revenue ads on initial application load." />
+                                        <SettingToggle label="Splash Ads (Android)" field="showOpenAdInSplash_android" icon={Zap} description="Show high-revenue ads on Android initial application load." />
+                                        <SettingToggle label="Splash Ads (iOS)" field="showOpenAdInSplash_ios" icon={Zap} description="Show high-revenue ads on iOS initial application load." />
                                         <SettingToggle label="Native Ads" field="native_ads_enabled" icon={LayoutGrid} description="Enable contextual advertisements in list views." />
                                         <SettingToggle label="Review Prompt" field="showreview" icon={Check} description="Trigger market review invitations to users." />
                                     </div>

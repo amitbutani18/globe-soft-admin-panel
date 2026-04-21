@@ -31,10 +31,10 @@ const kaliAiConfigService = {
 
     update: async (id, payload) => {
         try {
-            const response = await axios.put(`${BASE_URL}/ai-configs/${id}`, payload);
+            const response = await axios.patch(`${BASE_URL}/ai-configs/${id}`, payload);
             return response.data;
         } catch (error) {
-            console.error('Error updating AI Config:', error);
+            console.error('Error patching AI Config:', error);
             throw error;
         }
     },
