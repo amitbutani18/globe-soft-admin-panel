@@ -290,41 +290,40 @@ const Ads = () => {
     return (
         <div className="max-w-6xl mx-auto space-y-8 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Header */}
-            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-8 rounded-[2.5rem] shadow-sm shadow-indigo-500/5">
-                <div className="flex items-center gap-6">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-indigo-500 to-purple-600 shadow-xl shadow-indigo-500/20 text-white">
-                        <Megaphone className="w-8 h-8" />
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 rounded-3xl shadow-sm">
+                <div className="flex items-center gap-4">
+                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg text-white">
+                        <Megaphone className="w-6 h-6" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white uppercase">Aesthetic Ads</h1>
-                        <p className="text-zinc-500 dark:text-zinc-400 text-xs mt-1 font-medium italic lowercase">orchestrating.monetization.clusters</p>
-                        <p className="text-[9px] font-mono text-zinc-400 mt-1 uppercase">ID: {configId}</p>
+                        <h1 className="text-2xl font-black tracking-tight text-zinc-900 dark:text-white uppercase italic">Aesthetic Ads</h1>
+                        <p className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium italic lowercase">orchestrating.monetization.clusters</p>
                     </div>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                     {!isEditing ? (
                         <>
                             <button
                                 type="button"
                                 onClick={handleAddField}
-                                className="flex items-center gap-2 px-6 py-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl font-bold text-[11px] uppercase tracking-widest shadow-sm hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all"
+                                className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl font-bold text-[10px] uppercase tracking-widest shadow-sm hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all"
                             >
-                                <Plus className="w-4 h-4 text-indigo-500" /> Create Variable
+                                <Plus className="w-3.5 h-3.5 text-indigo-500" /> Create Variable
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setIsEditing(true)}
-                                className="flex items-center gap-2 px-8 py-4 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 hover:scale-105 active:scale-95 transition-all rounded-2xl font-bold uppercase tracking-widest text-[11px] shadow-xl"
+                                className="flex items-center gap-2 px-6 py-2 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 hover:scale-105 active:scale-95 transition-all rounded-xl font-bold uppercase tracking-widest text-[10px] shadow-lg"
                             >
-                                <Pencil className="w-4 h-4" /> Edit Config
+                                <Pencil className="w-3.5 h-3.5" /> Edit Config
                             </button>
                         </>
                     ) : (
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
                             <button
                                 type="button"
                                 onClick={handleCancel}
-                                className="px-6 py-4 text-zinc-500 hover:text-rose-500 transition-colors font-bold text-xs uppercase tracking-widest"
+                                className="px-4 py-2 text-zinc-500 hover:text-rose-500 transition-colors font-bold text-[10px] uppercase tracking-widest"
                             >
                                 Cancel
                             </button>
@@ -332,9 +331,9 @@ const Ads = () => {
                                 type="button"
                                 onClick={handleSave}
                                 disabled={saving}
-                                className="flex items-center gap-2 px-8 py-4 bg-indigo-600 text-white hover:bg-indigo-500 transition-all rounded-2xl font-bold uppercase tracking-widest text-[11px] shadow-lg shadow-indigo-600/20"
+                                className="flex items-center gap-2 px-6 py-2 bg-indigo-600 text-white hover:bg-indigo-500 transition-all rounded-xl font-bold uppercase tracking-widest text-[10px] shadow-lg shadow-indigo-600/20"
                             >
-                                {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                {saving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
                                 Save Changes
                             </button>
                         </div>
@@ -368,31 +367,30 @@ const Ads = () => {
                     <button
                         type="button"
                         onClick={handleAddField}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-xl text-[10px] font-black uppercase tracking-widest border border-indigo-500/20 hover:bg-indigo-500/20 transition-all self-end sm:self-auto"
+                        className="flex items-center gap-2 px-4 py-2 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-xl text-[9px] font-black uppercase tracking-widest border border-indigo-500/20 hover:bg-indigo-500/20 transition-all self-end sm:self-auto"
                     >
-                        <Plus className="w-4 h-4" /> Add Custom Unit
+                        <Plus className="w-3.5 h-3.5" /> Add Custom Unit
                     </button>
                 )}
             </div>
 
             {/* Unified List View */}
-            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] overflow-hidden shadow-sm transition-all duration-300">
-                <div className="p-2">
+            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl overflow-hidden shadow-sm transition-all duration-300">
+                <div className="p-1">
                     <div className="grid grid-cols-1 divide-y divide-zinc-100 dark:divide-zinc-800">
                         {filteredFields.map((field) => (
-                            <div key={field.id} className="group flex flex-col sm:flex-row sm:items-center gap-4 p-6 hover:bg-zinc-50/50 dark:hover:bg-zinc-800/20 transition-all">
-                                <div className="flex-1 min-w-[240px] space-y-1">
+                            <div key={field.id} className="group flex flex-col sm:flex-row sm:items-center gap-4 p-4 hover:bg-zinc-50/50 dark:hover:bg-zinc-800/20 transition-all">
+                                <div className="flex-1 min-w-[200px] space-y-1">
                                     <div className="flex items-center gap-3">
-                                        <div className={`p-2 rounded-xl ${field.platform === 'ios' ? 'bg-purple-500/10 text-purple-600' : 'bg-indigo-500/10 text-indigo-600'}`}>
-                                            {field.Icon && <field.Icon className="w-4 h-4" />}
+                                        <div className={`p-1.5 rounded-lg ${field.platform === 'ios' ? 'bg-purple-500/10 text-purple-600' : 'bg-indigo-500/10 text-indigo-600'}`}>
+                                            {field.Icon && <field.Icon className="w-3.5 h-3.5" />}
                                         </div>
                                         <div className="flex flex-col">
-                                            <span className="text-xs font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">{field.label}</span>
+                                            <span className="text-[11px] font-black text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">{field.label}</span>
                                             <div className="flex items-center gap-2">
-                                                <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-widest ${field.platform === 'ios' ? 'bg-purple-500/10 text-purple-600' : 'bg-indigo-500/10 text-indigo-600'}`}>
+                                                <span className={`text-[8px] px-1 py-0.5 rounded font-bold uppercase tracking-widest ${field.platform === 'ios' ? 'bg-purple-500/10 text-purple-600' : 'bg-indigo-500/10 text-indigo-600'}`}>
                                                     {field.platform}
                                                 </span>
-                                                <span className="text-[10px] text-zinc-400 font-mono italic">{field.id}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -404,8 +402,8 @@ const Ads = () => {
                                         value={form[field.id]}
                                         onChange={e => handleChange(field.id, e.target.value)}
                                         disabled={!isEditing}
-                                        className={`w-full px-5 py-3.5 rounded-2xl border bg-zinc-50/50 dark:bg-zinc-950/50 text-sm font-mono outline-none transition-all ${isEditing
-                                            ? 'border-zinc-200 dark:border-zinc-800 focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/5'
+                                        className={`w-full px-4 py-2 rounded-xl border bg-zinc-50/50 dark:bg-zinc-950/50 text-[11px] font-mono outline-none transition-all ${isEditing
+                                            ? 'border-zinc-200 dark:border-zinc-800 focus:border-indigo-500/50'
                                             : 'border-transparent cursor-not-allowed opacity-60'
                                             }`}
                                         placeholder="ca-app-pub-..."

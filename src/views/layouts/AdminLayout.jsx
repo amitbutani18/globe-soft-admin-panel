@@ -4,7 +4,6 @@ import {
     LayoutDashboard,
     Settings,
     Layers,
-    ChevronRight,
     ChevronDown,
     Monitor,
     Terminal,
@@ -13,21 +12,17 @@ import {
     X,
     FileJson,
     Megaphone,
-    Fingerprint,
-    Zap,
     Star,
     Sun,
     Moon,
     BookOpen,
     Cpu,
-    FileText,
     Globe,
     BarChart2,
-    KeyRound,
+    Zap,
     BookMarked,
     HelpCircle,
     FolderOpen,
-    ShieldCheck,
     Users,
     Languages,
     Image,
@@ -50,7 +45,7 @@ const apps = [
         color: 'text-indigo-400',
         activeBg: 'bg-indigo-500/10',
         activeBorder: 'border-indigo-500/20',
-        accent: 'indigo',
+        accentColor: '#818cf8',
         subItems: [
             {
                 name: 'Content',
@@ -80,15 +75,14 @@ const apps = [
         id: 'kali linux',
         name: 'Kali Linux',
         icon: <Terminal className="w-5 h-5" />,
-        color: 'text-green-400',
-        activeBg: 'bg-green-500/10',
-        activeBorder: 'border-green-500/20',
-        accent: 'green',
+        color: 'text-emerald-400',
+        activeBg: 'bg-emerald-500/10',
+        activeBorder: 'border-emerald-500/20',
+        accentColor: '#10b981',
         subItems: [
             { name: 'Daily Blogs', path: '/daily-blogs', icon: <BookOpen className="w-4 h-4" /> },
             { name: 'Module Explorer', path: '/kali-modules', icon: <FolderOpen className="w-4 h-4" /> },
             { name: 'Level Quizzes', path: '/level-quizzes', icon: <BarChart2 className="w-4 h-4" /> },
-
             { name: 'Flashed Quiz', path: '/flashed-quiz', icon: <Zap className="w-4 h-4" /> },
             { name: 'Story Learning', path: '/story-learning', icon: <BookMarked className="w-4 h-4" /> },
             {
@@ -132,7 +126,7 @@ const apps = [
         color: 'text-pink-400',
         activeBg: 'bg-pink-500/10',
         activeBorder: 'border-pink-500/20',
-        accent: 'pink',
+        accentColor: '#f472b6',
         subItems: [
             { name: 'Prompts', path: '/prompts', icon: <Sparkles className="w-4 h-4" /> },
             { name: 'Templates', path: '/templates', icon: <Layers className="w-4 h-4" /> },
@@ -140,48 +134,40 @@ const apps = [
     },
 ];
 
-// Nested navigation component
 const NestedNavItem = ({ sub, location }) => {
     const [isExpanded, setIsExpanded] = React.useState(false);
 
     if (sub.children) {
-        // Parent item with children
         const isParentActive = sub.children.some(child => location.pathname === child.path);
 
-        // Auto-expand if any child is active
         React.useEffect(() => {
             if (isParentActive && !isExpanded) {
                 setIsExpanded(true);
             }
-        }, [isParentActive, isExpanded]);
+        }, [isParentActive]);
 
         return (
             <div className="space-y-1">
                 <button
                     onClick={() => setIsExpanded(!isExpanded)}
                     className={cn(
-                        "w-full flex items-center gap-3.5 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200",
+                        "w-full flex items-center justify-between px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-300",
                         isParentActive
-                            ? "text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 dark:bg-indigo-500/5 shadow-sm shadow-indigo-500/10"
+                            ? "text-zinc-900 dark:text-white bg-zinc-100 dark:bg-zinc-800/50"
                             : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800/30"
                     )}
                 >
-                    <span className={cn(
-                        "transition-all duration-300",
-                        isParentActive ? "text-indigo-600 dark:text-indigo-500 scale-110" : "opacity-70"
-                    )}>
-                        {React.cloneElement(sub.icon, { className: "w-[18px] h-[18px]" })}
-                    </span>
-                    <span className="flex-1 text-left">{sub.name}</span>
-                    <ChevronRight className={cn(
-                        "w-3 h-3 transition-transform duration-300",
-                        isExpanded && "rotate-90"
-                    )} />
+                    <div className="flex items-center gap-3">
+                        <span className={isParentActive ? "text-crimson-600 dark:text-crimson-500" : "opacity-70"}>
+                            {React.cloneElement(sub.icon, { className: "w-4 h-4" })}
+                        </span>
+                        {sub.name}
+                    </div>
+                    <ChevronDown className={cn("w-3 h-3 transition-transform duration-300 opacity-40", isExpanded && "rotate-180")} />
                 </button>
 
-                {/* Children */}
                 {isExpanded && (
-                    <div className="ml-6 space-y-1.5 animate-in slide-in-from-top-1 duration-200">
+                    <div className="ml-4 space-y-1 border-l border-zinc-200 dark:border-zinc-800/50 pl-4 py-1 animate-in slide-in-from-top-1 duration-200">
                         {sub.children.map((child) => {
                             const isChildActive = location.pathname === child.path;
                             return (
@@ -189,18 +175,13 @@ const NestedNavItem = ({ sub, location }) => {
                                     key={child.path}
                                     to={child.path}
                                     className={cn(
-                                        "flex items-center gap-3.5 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200",
+                                        "flex items-center gap-3 px-3 py-1 rounded-lg text-[11px] font-medium transition-all",
                                         isChildActive
-                                            ? "text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 dark:bg-indigo-500/5 shadow-sm shadow-indigo-500/10"
-                                            : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800/30"
+                                            ? "text-crimson-600 dark:text-crimson-400 bg-crimson-500/5"
+                                            : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
                                     )}
                                 >
-                                    <span className={cn(
-                                        "transition-all duration-300",
-                                        isChildActive ? "text-indigo-600 dark:text-indigo-500 scale-110" : "opacity-70"
-                                    )}>
-                                        {React.cloneElement(child.icon, { className: "w-[18px] h-[18px]" })}
-                                    </span>
+                                    <div className={cn("w-1 h-1 rounded-full", isChildActive ? "bg-crimson-500" : "bg-zinc-300 dark:bg-zinc-700")} />
                                     {child.name}
                                 </Link>
                             );
@@ -210,24 +191,23 @@ const NestedNavItem = ({ sub, location }) => {
             </div>
         );
     } else {
-        // Regular sub-item without children
         const isActive = location.pathname === sub.path;
         return (
             <Link
                 key={sub.path}
                 to={sub.path}
                 className={cn(
-                    "flex items-center gap-3.5 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200",
+                    "flex items-center gap-3 px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-300",
                     isActive
-                        ? "text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 dark:bg-indigo-500/5 shadow-sm shadow-indigo-500/10"
+                        ? "text-zinc-900 dark:text-white bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 shadow-sm"
                         : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800/30"
                 )}
             >
                 <span className={cn(
                     "transition-all duration-300",
-                    isActive ? "text-indigo-600 dark:text-indigo-500 scale-110" : "opacity-70"
+                    isActive ? "text-crimson-600 dark:text-crimson-500 scale-110" : "opacity-70"
                 )}>
-                    {React.cloneElement(sub.icon, { className: "w-[18px] h-[18px]" })}
+                    {React.cloneElement(sub.icon, { className: "w-4 h-4" })}
                 </span>
                 {sub.name}
             </Link>
@@ -240,46 +220,25 @@ const AdminLayout = () => {
     const location = useLocation();
     const [isSidebarOpen, setSidebarOpen] = useState(true);
 
-    // Derive the active app from the current URL - works on page refresh too
     const activeApp = React.useMemo(() => {
-        console.log('Current pathname:', location.pathname);
-
         const findActivePath = (items) => {
             for (const item of items) {
-                if (item.path && location.pathname === item.path) {
-                    console.log('Found active path:', item.path);
-                    return true;
-                }
-                if (item.children) {
-                    if (findActivePath(item.children)) {
-                        return true;
-                    }
-                }
+                if (item.path && location.pathname === item.path) return true;
+                if (item.children && findActivePath(item.children)) return true;
             }
             return false;
         };
 
-        const matched = apps.find(app => {
-            const isActive = findActivePath(app.subItems);
-            if (isActive) {
-                console.log('Active app found:', app.id);
-            }
-            return isActive;
-        });
-
-        const result = matched?.id ?? 'dashboard';
-        console.log('Final active app:', result);
-        return result;
+        const matched = apps.find(app => findActivePath(app.subItems));
+        return matched?.id ?? 'dashboard';
     }, [location.pathname]);
 
-    // Keep the global store in sync with the current path
     React.useEffect(() => {
         setActiveApp(activeApp);
     }, [activeApp, setActiveApp]);
 
     const [expandedApp, setExpandedApp] = useState(activeApp);
 
-    // Sync theme with HTML root
     React.useEffect(() => {
         if (theme === 'dark') {
             document.documentElement.classList.add('dark');
@@ -292,146 +251,132 @@ const AdminLayout = () => {
         setExpandedApp(prev => prev === appId ? null : appId);
     };
 
-    // Keep expanded section in sync when navigating between apps
     React.useEffect(() => {
         setExpandedApp(activeApp);
     }, [activeApp]);
 
     return (
         <div className={cn(
-            "flex h-screen font-sans selection:bg-indigo-500/30 transition-colors duration-300",
-            "bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100"
+            "flex h-screen font-sans selection:bg-crimson-500/30 transition-colors duration-300",
+            "bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100"
         )}>
-            {/* Sidebar */}
+            <div className="fixed inset-0 bg-white dark:bg-zinc-950 pointer-events-none transition-colors duration-1000" />
+            <div className="fixed -top-24 -right-24 w-96 h-96 bg-crimson-500/10 dark:bg-crimson-500/5 rounded-full blur-[100px] animate-pulse" />
+            <div className="fixed -bottom-24 -left-24 w-96 h-96 bg-indigo-500/10 dark:bg-indigo-500/5 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '2s' }} />
+
             <aside
                 className={cn(
-                    "fixed inset-y-0 left-0 z-50 w-72 border-r transition-all duration-300 ease-in-out lg:relative lg:translate-x-0 outline-none",
-                    "bg-white border-zinc-200 dark:bg-zinc-900 dark:border-zinc-800",
-                    !isSidebarOpen && "-translate-x-full lg:w-20"
+                    "fixed lg:static inset-y-0 left-0 z-50 w-64 transition-all duration-500 transform overflow-hidden",
+                    "bg-white/80 dark:bg-zinc-900/80 backdrop-blur-2xl border-r border-zinc-200/50 dark:border-zinc-800/50 shadow-2xl",
+                    isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:w-20"
                 )}
             >
                 <div className="flex flex-col h-full">
-                    {/* Logo Header */}
-                    <div className="p-6 flex items-center justify-between border-b border-zinc-800/50 mb-6">
+                    <div className="p-6 flex items-center justify-between mb-1">
                         {isSidebarOpen ? (
-                            <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                                    <Monitor className="w-5 h-5" />
+                            <div className="flex items-center gap-3 group cursor-pointer">
+                                <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-crimson-500 to-crimson-700 flex items-center justify-center shadow-lg shadow-crimson-500/40 transition-all duration-500">
+                                    <Monitor className="w-5 h-5 text-white" />
                                 </div>
-                                <h1 className="text-xl font-bold bg-gradient-to-r from-white to-zinc-500 bg-clip-text text-transparent">
-                                    CRM Admin
-                                </h1>
+                                <div className="flex flex-col">
+                                    <h1 className="text-lg font-black bg-gradient-to-r from-zinc-900 to-zinc-500 dark:from-white dark:to-zinc-500 bg-clip-text text-transparent italic tracking-tighter leading-none">
+                                        CRM ADMIN
+                                    </h1>
+                                    <span className="text-[9px] font-black text-crimson-500 tracking-[0.3em] ml-0.5 uppercase">Premium Suite</span>
+                                </div>
                             </div>
                         ) : (
-                            <div className="mx-auto w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
-                                <Monitor className="w-5 h-5" />
+                            <div className="mx-auto w-9 h-9 rounded-2xl bg-gradient-to-br from-crimson-500 to-crimson-700 flex items-center justify-center shadow-lg shadow-crimson-500/40 transition-transform">
+                                <Monitor className="w-5 h-5 text-white" />
                             </div>
                         )}
-                        <button
-                            onClick={() => setSidebarOpen(!isSidebarOpen)}
-                            className="p-2 rounded-lg hover:bg-zinc-800 transition-colors lg:hidden"
-                        >
+                        <button onClick={() => setSidebarOpen(!isSidebarOpen)} className="p-2 rounded-lg hover:bg-zinc-800 transition-colors lg:hidden">
                             <X className="w-5 h-5" />
                         </button>
                     </div>
 
-                    {/* Navigation Container */}
-                    <nav className="flex-1 px-4 space-y-6 overflow-y-auto no-scrollbar">
-                        {/* Dashboard Link */}
+                    <nav className="flex-1 px-3 space-y-4 overflow-y-auto no-scrollbar">
                         <div className="space-y-1">
                             <Link
                                 to="/dashboard"
                                 className={cn(
-                                    "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200",
+                                    "flex items-center gap-3 px-3 py-1.5 rounded-xl transition-all duration-300 border",
                                     location.pathname === '/dashboard'
-                                        ? "bg-zinc-800 text-white shadow-xl shadow-black/40"
-                                        : "text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200"
+                                        ? "bg-crimson-50 text-crimson-600 border-crimson-100 dark:bg-white dark:text-zinc-900 dark:border-white shadow-sm"
+                                        : "bg-transparent border-transparent text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-900 dark:hover:text-zinc-200"
                                 )}
                             >
-                                <LayoutDashboard className={cn("w-5 h-5", location.pathname === '/dashboard' && "text-indigo-400")} />
-                                {isSidebarOpen && <span className="font-semibold text-sm">Dashboard</span>}
+                                <LayoutDashboard className={cn("w-4 h-4", location.pathname === '/dashboard' ? "text-crimson-600" : "text-zinc-400")} />
+                                {isSidebarOpen && <span className="font-bold text-xs tracking-tight text-inherit">Dashboard Overview</span>}
                             </Link>
                         </div>
 
-                        {/* Applications (Accordion) */}
                         <div className="space-y-2">
-                            <h2 className={cn("text-[10px] font-bold text-zinc-600 uppercase tracking-[0.2em] mb-4 px-3", !isSidebarOpen && "sr-only")}>
+                            <h2 className={cn("text-[9px] font-bold text-zinc-500 uppercase tracking-[0.2em] mb-2 px-3", !isSidebarOpen && "sr-only")}>
                                 Applications
                             </h2>
-                            {apps.map((app) => (
-                                <div key={app.id} className="space-y-1">
-                                    <button
-                                        onClick={() => toggleApp(app.id)}
-                                        className={cn(
-                                            "w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden",
-                                            activeApp === app.id
-                                                ? cn(app.activeBg, "text-zinc-100")
-                                                : "text-zinc-500 hover:bg-zinc-800/50 hover:text-zinc-300"
-                                        )}
-                                    >
-                                        {activeApp === app.id && (
-                                            <div className={cn("absolute left-0 top-0 bottom-0 w-1",
-                                                app.accent === 'indigo' ? 'bg-indigo-500' :
-                                                    app.accent === 'green' ? 'bg-green-500' : 'bg-pink-500'
-                                            )} />
-                                        )}
-                                        <div className={cn(
-                                            "shrink-0 transition-transform duration-300",
-                                            activeApp === app.id ? "scale-110" : "group-hover:scale-110",
-                                            activeApp === app.id ? app.color : "text-zinc-600"
-                                        )}>
-                                            {app.icon}
-                                        </div>
-                                        {isSidebarOpen && (
-                                            <span className="font-bold text-[15px] flex-1 text-left tracking-tight">{app.name}</span>
-                                        )}
-                                        {isSidebarOpen && (
-                                            <ChevronDown className={cn(
-                                                "w-4 h-4 transition-transform duration-300 opacity-50",
-                                                expandedApp === app.id && "rotate-180"
-                                            )} />
-                                        )}
-                                    </button>
+                            {apps.map((app) => {
+                                const isActive = activeApp === app.id;
+                                const isExpanded = expandedApp === app.id;
 
-                                    {/* Sub-items (Accordion Content) */}
-                                    {isSidebarOpen && expandedApp === app.id && (
-                                        <div className="ml-9 space-y-1.5 border-l border-zinc-200 dark:border-zinc-800/50 pl-3 py-2 animate-in slide-in-from-top-2 duration-300">
-                                            {app.subItems.map((sub) => (
-                                                <NestedNavItem key={sub.path || sub.name} sub={sub} location={location} />
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
+                                return (
+                                    <div key={app.id} className="space-y-1">
+                                        <button
+                                            onClick={() => toggleApp(app.id)}
+                                            className={cn(
+                                                "w-full flex items-center justify-between p-2 rounded-xl transition-all duration-300 border",
+                                                (isActive || isExpanded)
+                                                    ? "bg-zinc-50/80 text-zinc-900 border-zinc-200 dark:bg-white dark:text-zinc-900 dark:border-white shadow-sm"
+                                                    : "bg-transparent border-transparent text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-900 dark:hover:text-zinc-200"
+                                            )}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className={cn(
+                                                    "w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-500 shadow-sm",
+                                                    (isActive || isExpanded) ? "scale-110 " + app.activeBg : "opacity-80"
+                                                )} style={{ color: app.accentColor }}>
+                                                    {React.cloneElement(app.icon, { className: "w-3.5 h-3.5" })}
+                                                </div>
+                                                {isSidebarOpen && (
+                                                    <div className="flex flex-col items-start min-w-0">
+                                                        <span className="font-black text-xs uppercase tracking-widest truncate text-inherit leading-none">{app.name}</span>
+                                                        <span className={cn(
+                                                            "text-[8px] font-bold uppercase tracking-tighter opacity-60 truncate",
+                                                            (isActive || isExpanded) ? "text-crimson-600" : ""
+                                                        )}>Active Node</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            {isSidebarOpen && (
+                                                <ChevronDown className={cn(
+                                                    "w-3 h-3 transition-transform duration-500 opacity-40",
+                                                    isExpanded && "rotate-180 opacity-100"
+                                                )} />
+                                            )}
+                                        </button>
 
-                        {/* Global Settings */}
-                        <div className="pt-4 mt-4 border-t border-zinc-800/50">
-                            <Link
-                                to="/settings"
-                                className={cn(
-                                    "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200",
-                                    location.pathname === '/settings'
-                                        ? "bg-zinc-800 text-white shadow-xl shadow-black/40"
-                                        : "text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200"
-                                )}
-                            >
-                                <Settings className={cn("w-5 h-5", location.pathname === '/settings' && "text-indigo-400")} />
-                                {isSidebarOpen && <span className="font-semibold text-sm">Global Settings</span>}
-                            </Link>
+                                        {isSidebarOpen && isExpanded && (
+                                            <div className="ml-7 space-y-1 border-l border-zinc-200 dark:border-zinc-800/50 pl-2.5 py-1.5 animate-in slide-in-from-top-2 duration-300">
+                                                {app.subItems.map((sub) => (
+                                                    <NestedNavItem key={sub.path || sub.name} sub={sub} location={location} />
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
                         </div>
                     </nav>
 
-                    {/* Footer User Info */}
-                    <div className="p-4 border-t border-zinc-800">
-                        <div className="flex items-center gap-3 p-2 rounded-xl hover:bg-zinc-800/50 transition-colors cursor-pointer group">
-                            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform">
+                    <div className="p-4 border-t border-zinc-200 dark:border-zinc-800">
+                        <div className="flex items-center gap-3 p-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer group">
+                            <div className="w-8 h-8 rounded-lg bg-crimson-600 flex items-center justify-center text-white font-black text-xs shadow-lg shadow-crimson-500/40">
                                 A
                             </div>
                             {isSidebarOpen && (
                                 <div className="overflow-hidden">
-                                    <p className="font-bold text-sm truncate">Admin User</p>
-                                    <p className="text-[10px] text-zinc-500 truncate">admin@aesthetic.ai</p>
+                                    <p className="font-black text-xs truncate text-zinc-900 dark:text-white uppercase leading-none">Admin User</p>
+                                    <p className="text-[9px] text-zinc-500 truncate font-bold">admin@aesthetic.ai</p>
                                 </div>
                             )}
                         </div>
@@ -439,44 +384,48 @@ const AdminLayout = () => {
                 </div>
             </aside>
 
-            {/* Main Content Area */}
-            <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-zinc-50 dark:bg-zinc-950 transition-colors duration-300">
-                {/* Simplified Header */}
-                <header className="h-16 border-b border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-950/50 backdrop-blur-md px-8 flex items-center justify-between z-10 transition-colors duration-300">
+            <main className="flex-1 flex flex-col min-w-0 overflow-hidden z-10">
+                <header className="h-14 border-b border-zinc-200/50 dark:border-zinc-800/50 bg-white/40 dark:bg-zinc-950/40 backdrop-blur-3xl px-6 flex items-center justify-between sticky top-0 z-30">
                     <div className="flex items-center gap-4">
                         <button
                             onClick={() => setSidebarOpen(!isSidebarOpen)}
-                            className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors hidden lg:block"
+                            className="p-2.5 rounded-xl bg-white dark:bg-zinc-900 shadow-premium hover:scale-110 active:scale-95 transition-all text-zinc-500 dark:text-zinc-400 border border-zinc-100 dark:border-zinc-800"
                         >
-                            <Menu className="w-5 h-5 text-zinc-500 dark:text-zinc-400" />
+                            <Menu className="w-4 h-4" />
                         </button>
-                        <h2 className="text-sm font-semibold tracking-tight text-zinc-500 dark:text-zinc-400">
-                            {activeApp.replace('_', ' ').toUpperCase()} <span className="mx-2 text-zinc-300 dark:text-zinc-700">/</span>
-                            <span className="text-zinc-900 dark:text-zinc-100">{location.pathname.substring(1).replace('-', ' ').toUpperCase() || 'DASHBOARD'}</span>
-                        </h2>
+                        <div className="flex flex-col">
+                            <h2 className="text-[9px] font-black tracking-[0.3em] text-crimson-500 uppercase italic leading-none">
+                                {activeApp.replace('_', ' ')}
+                            </h2>
+                            <div className="flex items-center gap-2">
+                                <span className="text-xl font-black text-zinc-900 dark:text-white tracking-tighter capitalize">
+                                    {location.pathname.split('/').pop()?.replace('-', ' ') || 'Dashboard'}
+                                </span>
+                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                            </div>
+                        </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3">
+                        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-100/50 dark:bg-zinc-800/50 border border-zinc-200/50 dark:border-zinc-700/50">
+                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                            <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest leading-none">Live: 24ms</span>
+                        </div>
                         <button
                             onClick={toggleTheme}
-                            className="p-2 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all duration-300"
-                            title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+                            className="p-2.5 rounded-xl bg-white dark:bg-zinc-900 shadow-premium border border-zinc-100 dark:border-zinc-800 hover:scale-110 active:scale-95 transition-all group"
                         >
                             {theme === 'dark' ? (
                                 <Sun className="w-5 h-5 text-amber-500" />
                             ) : (
-                                <Moon className="w-5 h-5 text-indigo-600" />
+                                <Moon className="w-5 h-5 text-crimson-600" />
                             )}
                         </button>
-                        <div className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold text-emerald-500 uppercase tracking-widest">
-                            Local Node: Active
-                        </div>
                     </div>
                 </header>
 
-                {/* Dynamic Page Content */}
-                <div className="flex-1 overflow-auto p-8 custom-scrollbar">
-                    <div className="max-w-7xl mx-auto">
+                <div className="flex-1 overflow-auto p-6 selection:bg-crimson-500/20">
+                    <div className="max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-1000">
                         <Outlet />
                     </div>
                 </div>

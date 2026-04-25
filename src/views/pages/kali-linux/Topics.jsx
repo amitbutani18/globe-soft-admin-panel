@@ -206,30 +206,30 @@ const Topics = () => {
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
 
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div className="flex items-center gap-6">
-                    <div className="w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-blue-500 to-indigo-600 shadow-xl shadow-blue-500/20 flex items-center justify-center text-white shrink-0 transition-transform hover:scale-105 duration-300">
-                        <FolderOpen className="w-8 h-8" />
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg flex items-center justify-center text-white shrink-0 transition-transform hover:scale-105 duration-300">
+                        <FolderOpen className="w-6 h-6" />
                     </div>
                     <div>
-                        <h1 className="text-4xl font-extrabold tracking-tight text-zinc-900 dark:text-white uppercase italic">Knowledge Topics</h1>
-                        <p className="text-zinc-500 dark:text-zinc-400 mt-1 max-w-lg font-medium">
+                        <h1 className="text-2xl font-black tracking-tight text-zinc-900 dark:text-white uppercase italic">Knowledge Topics</h1>
+                        <p className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium italic">
                             Manage the root taxonomy for Kali Linux learning pathways.
                         </p>
                     </div>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                     <button
                         onClick={() => fetchTopics()}
                         disabled={loading}
-                        className="p-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-2xl transition-all text-zinc-600 dark:text-zinc-400 disabled:opacity-50"
+                        className="p-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-xl transition-all text-zinc-500 disabled:opacity-50"
                         title="Refresh Registry"
                     >
-                        <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+                        <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                     </button>
                     <button
                         onClick={() => setIsAddModalOpen(true)}
-                        className="flex items-center gap-3 px-8 py-3.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-2xl transition-all font-bold shadow-2xl active:scale-95 text-[11px] uppercase tracking-[0.2em]"
+                        className="flex items-center gap-2 px-5 py-2 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl transition-all font-bold shadow-xl active:scale-95 text-[10px] uppercase tracking-widest"
                     >
                         <Plus className="w-4 h-4" />
                         Initialize Topic
@@ -237,48 +237,48 @@ const Topics = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {[
                     { label: 'Registered Topics', value: total, icon: LayoutGrid, color: 'text-blue-500', bg: 'bg-blue-500/10' },
                     { label: 'Active Pathways', value: topics.length, icon: Activity, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
                     { label: 'Gateway Access', value: 'Public', icon: Globe, color: 'text-amber-500', bg: 'bg-amber-500/10' },
                 ].map(stat => (
-                    <div key={stat.label} className="bg-white/60 dark:bg-zinc-900/60 backdrop-blur-xl border border-zinc-200 dark:border-zinc-800 rounded-[2rem] p-6 flex items-center gap-5 transition-all hover:scale-[1.02] duration-300">
-                        <div className={`w-14 h-14 rounded-2xl ${stat.bg} flex items-center justify-center flex-shrink-0 shadow-inner`}>
-                            <stat.icon className={`w-7 h-7 ${stat.color}`} />
+                    <div key={stat.label} className="bg-white/60 dark:bg-zinc-900/60 backdrop-blur-xl border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 flex items-center gap-4 transition-all hover:scale-[1.02] duration-300">
+                        <div className={`w-10 h-10 rounded-xl ${stat.bg} flex items-center justify-center flex-shrink-0 shadow-inner`}>
+                            <stat.icon className={`w-5 h-5 ${stat.color}`} />
                         </div>
                         <div className="min-w-0">
-                            <p className="text-3xl font-black text-zinc-900 dark:text-white leading-tight">{stat.value}</p>
-                            <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">{stat.label}</p>
+                            <p className="text-xl font-black text-zinc-900 dark:text-white leading-tight">{stat.value}</p>
+                            <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">{stat.label}</p>
                         </div>
                     </div>
                 ))}
             </div>
 
-            <div className="bg-white/40 dark:bg-zinc-900/40 backdrop-blur-2xl border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] overflow-hidden shadow-sm transition-all duration-500">
+            <div className="bg-white/40 dark:bg-zinc-900/40 backdrop-blur-2xl border border-zinc-200 dark:border-zinc-800 rounded-3xl overflow-hidden shadow-sm transition-all duration-500">
 
-                <div className="p-8 border-b border-zinc-200 dark:border-zinc-800 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                    <div className="relative flex-1 max-w-md">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
+                <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="relative flex-1 max-w-sm">
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
                         <input
                             type="text"
-                            placeholder="Search topics by identity..."
+                            placeholder="Search topics..."
                             value={searchQuery}
                             onChange={e => setSearchQuery(e.target.value)}
-                            className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl pl-12 pr-6 py-3.5 text-sm focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/5 outline-none transition-all placeholder:text-zinc-400"
+                            className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl pl-10 pr-4 py-2 text-sm focus:border-blue-500/50 outline-none transition-all placeholder:text-zinc-400"
                         />
                     </div>
 
-                    <div className="flex items-center gap-4 text-xs">
-                        <span className="font-bold text-zinc-500 uppercase tracking-widest hidden lg:block">Matrix Density</span>
-                        <div className="flex bg-zinc-100 dark:bg-zinc-950 p-1.5 rounded-2xl gap-1">
+                    <div className="flex items-center gap-2 text-xs text-zinc-500">
+                        <span className="font-bold uppercase tracking-widest hidden sm:block">Per page</span>
+                        <div className="flex bg-zinc-100 dark:bg-zinc-950 p-1 rounded-lg gap-1">
                             {LIMIT_OPTIONS.map(l => (
                                 <button
                                     key={l}
                                     onClick={() => handleLimitChange(l)}
-                                    className={`px-4 py-2 rounded-xl font-black transition-all ${limit === l
-                                        ? 'bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-md scale-105'
-                                        : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'
+                                    className={`w-9 h-7 rounded-md font-black transition-all ${limit === l
+                                        ? 'bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-sm'
+                                        : 'hover:text-zinc-800 dark:hover:text-zinc-200'
                                         }`}
                                 >
                                     {l}
@@ -292,10 +292,10 @@ const Topics = () => {
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-zinc-50/50 dark:bg-zinc-950/20 border-b border-zinc-200 dark:border-zinc-800">
-                                <th className="px-8 py-5 text-[10px] font-black text-zinc-400 uppercase tracking-[0.25em] w-12">UID</th>
-                                <th className="px-8 py-5 text-[10px] font-black text-zinc-400 uppercase tracking-[0.25em]">Topic Identity</th>
-                                <th className="px-8 py-5 text-[10px] font-black text-zinc-400 uppercase tracking-[0.25em] w-40">Ad Index / Quiz Name</th>
-                                <th className="px-8 py-5 text-[10px] font-black text-zinc-400 uppercase tracking-[0.25em] w-48 text-right">Operations</th>
+                                <th className="px-6 py-3 text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] w-12 text-center">UID</th>
+                                <th className="px-6 py-3 text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em]">Topic Identity</th>
+                                <th className="px-6 py-3 text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] w-40">Ad / Quiz</th>
+                                <th className="px-6 py-3 text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] w-48 text-right">Operations</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-zinc-200/50 dark:divide-zinc-800/50">
@@ -325,30 +325,30 @@ const Topics = () => {
                                 paginatedTopics.map((topic, idx) => {
                                     const row = (page - 1) * limit + idx + 1;
                                     return (
-                                        <tr key={topic.id || idx} className="group hover:bg-blue-500/[0.02] transition-colors">
-                                            <td className="px-8 py-6 font-mono text-[10px] text-zinc-400 group-hover:text-blue-500 transition-colors">{row.toString().padStart(2, '0')}</td>
-                                            <td className="px-8 py-6">
+                                        <tr key={topic.id || idx} className="group hover:bg-blue-500/[0.02] transition-colors border-b border-zinc-100 dark:border-zinc-800/50">
+                                            <td className="px-6 py-2.5 font-mono text-[10px] text-zinc-400 text-center">{row.toString().padStart(2, '0')}</td>
+                                            <td className="px-6 py-2.5">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-500 group-hover:bg-blue-500/10 group-hover:text-blue-500 transition-colors overflow-hidden">
-                                                        <span className="text-[10px] font-mono font-bold">{topic.icon || '—'}</span>
+                                                    <div className="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-500 group-hover:bg-blue-500/10 group-hover:text-blue-500 transition-colors shrink-0">
+                                                        <span className="text-[10px] font-mono font-bold uppercase">{topic.icon?.substring(0, 2) || '—'}</span>
                                                     </div>
-                                                    <div>
-                                                        <p className="font-black text-zinc-900 dark:text-zinc-100 text-base tracking-tight mb-0.5 group-hover:translate-x-1 transition-transform">{topic.name}</p>
-                                                        <p className="text-[11px] text-zinc-500 dark:text-zinc-500 font-medium line-clamp-1">{topic.description || 'No specialized description provided.'}</p>
+                                                    <div className="min-w-0">
+                                                        <p className="font-black text-zinc-900 dark:text-zinc-100 text-[13px] tracking-tight truncate">{topic.name}</p>
+                                                        <p className="text-[10px] text-zinc-400 font-medium truncate">{topic.id}</p>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-8 py-6">
-                                                <div className="flex flex-col gap-1">
-                                                    <span className="text-[10px] font-bold text-zinc-400 uppercase">Ad: <span className="text-zinc-900 dark:text-zinc-200">{topic.nativeAdIndex || 0}</span></span>
-                                                    <span className="text-[10px] font-bold text-zinc-400 uppercase whitespace-nowrap overflow-hidden text-ellipsis">Quiz: <span className="text-emerald-500">{topic.quizTopicName || '—'}</span></span>
+                                            <td className="px-6 py-2.5">
+                                                <div className="flex flex-col">
+                                                    <span className="text-[9px] font-bold text-zinc-400 uppercase">Ad: <span className="text-zinc-800 dark:text-zinc-200">{topic.nativeAdIndex || 0}</span></span>
+                                                    <span className="text-[9px] font-bold text-zinc-400 uppercase truncate">Quiz: <span className="text-emerald-500">{topic.quizTopicName || '—'}</span></span>
                                                 </div>
                                             </td>
-                                            <td className="px-8 py-6 text-right">
-                                                <div className="flex items-center justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
-                                                    <button onClick={() => openView(topic)} className="p-2.5 hover:bg-blue-500/10 text-blue-500 rounded-xl transition-all" title="View Detail"><Eye className="w-4 h-4" /></button>
-                                                    <button onClick={() => openEdit(topic)} className="p-2.5 hover:bg-amber-500/10 text-amber-500 rounded-xl transition-all" title="Modify"><Pencil className="w-4 h-4" /></button>
-                                                    <button onClick={() => handleDelete(topic)} className="p-2.5 hover:bg-rose-500/10 text-rose-500 rounded-xl transition-all" title="Terminate"><Trash2 className="w-4 h-4" /></button>
+                                            <td className="px-6 py-2.5 text-right">
+                                                <div className="flex items-center justify-end gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
+                                                    <button onClick={() => openView(topic)} className="p-2 hover:bg-blue-500/10 text-blue-500 rounded-lg transition-all" title="View"><Eye className="w-3.5 h-3.5" /></button>
+                                                    <button onClick={() => openEdit(topic)} className="p-2 hover:bg-amber-500/10 text-amber-500 rounded-lg transition-all" title="Edit"><Pencil className="w-3.5 h-3.5" /></button>
+                                                    <button onClick={() => handleDelete(topic)} className="p-2 hover:bg-rose-500/10 text-rose-500 rounded-lg transition-all" title="Delete"><Trash2 className="w-3.5 h-3.5" /></button>
                                                 </div>
                                             </td>
                                         </tr>
