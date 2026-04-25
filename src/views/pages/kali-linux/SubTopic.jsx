@@ -209,59 +209,64 @@ const SubTopic = () => {
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Sub Topics</h1>
-                    <p className="text-zinc-500 dark:text-zinc-400 mt-1">
-                        Manage specialized learning paths for Kali Linux.
-                        <span className="ml-2 text-[10px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full uppercase tracking-widest">
-                            {subTopics.length} Total
-                        </span>
-                    </p>
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg flex items-center justify-center text-white shrink-0 transition-transform hover:scale-105 duration-300">
+                        <Layers className="w-6 h-6" />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-black tracking-tight text-zinc-900 dark:text-white uppercase italic">Sub Topics</h1>
+                        <p className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium italic">
+                            Manage specialized learning paths for Kali Linux.
+                            <span className="ml-2 text-[10px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full uppercase tracking-widest">
+                                {subTopics.length} Total
+                            </span>
+                        </p>
+                    </div>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                     <button
                         onClick={fetchData}
                         disabled={loading}
-                        className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-xl transition-all text-sm font-semibold text-zinc-600 dark:text-zinc-300"
+                        className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-xl transition-all text-xs font-bold text-zinc-500"
                     >
-                        <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                        <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
                         Sync
                     </button>
                     <button
                         onClick={() => setIsAddModalOpen(true)}
-                        className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition-all font-semibold shadow-lg shadow-indigo-500/20 active:scale-95 text-sm"
+                        className="flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition-all font-bold shadow-lg shadow-indigo-500/20 active:scale-95 text-[10px] uppercase tracking-widest"
                     >
-                        <Plus className="w-5 h-5" />
+                        <Plus className="w-4 h-4" />
                         Initialize SubTopic
                     </button>
                 </div>
             </div>
 
             {/* Main Content Card */}
-            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm">
+            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl overflow-hidden shadow-sm">
                 {/* Toolbar */}
-                <div className="p-5 border-b border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-zinc-50/50 dark:bg-zinc-950/20">
+                <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-zinc-50/50 dark:bg-zinc-950/20">
                     <div className="relative flex-1 max-w-sm">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
                         <input
                             type="text"
                             placeholder="Search sub-topics..."
                             value={searchQuery}
                             onChange={e => setSearchQuery(e.target.value)}
-                            className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl pl-10 pr-4 py-2 text-sm focus:border-indigo-500/50 focus:outline-none transition-all placeholder:text-zinc-400"
+                            className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl pl-10 pr-4 py-2 text-sm focus:border-indigo-500/50 outline-none transition-all placeholder:text-zinc-400"
                         />
                     </div>
 
-                    <div className="flex items-center gap-4 text-xs">
-                        <span className="font-bold text-zinc-500 uppercase tracking-widest hidden sm:block">Per page</span>
-                        <div className="flex gap-1">
+                    <div className="flex items-center gap-2 text-xs text-zinc-500">
+                        <span className="font-bold uppercase tracking-widest hidden sm:block">Per page</span>
+                        <div className="flex bg-zinc-100 dark:bg-zinc-950 p-1.5 rounded-lg gap-1">
                             {LIMIT_OPTIONS.map(l => (
                                 <button
                                     key={l}
                                     onClick={() => { setLimit(l); setPage(1); }}
-                                    className={`w-9 h-8 rounded-lg font-bold transition-all ${limit === l
-                                        ? 'bg-indigo-500 text-white shadow-md'
-                                        : 'hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500'
+                                    className={`px-3 py-1.5 rounded-md font-black transition-all ${limit === l
+                                        ? 'bg-white dark:bg-zinc-800 text-indigo-600 dark:text-indigo-400 shadow-sm'
+                                        : 'hover:text-zinc-800 dark:hover:text-zinc-200'
                                         }`}
                                 >
                                     {l}
@@ -275,12 +280,12 @@ const SubTopic = () => {
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-zinc-50/50 dark:bg-zinc-950/40 border-b border-zinc-200 dark:border-zinc-800 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
-                                <th className="px-6 py-4 w-12 text-center">#</th>
-                                <th className="px-6 py-4">Identity & Intent</th>
-                                <th className="px-6 py-4">Parent Root</th>
-                                <th className="px-6 py-4 w-28 text-center">Order</th>
-                                <th className="px-6 py-4 text-right w-52">Operations</th>
+                            <tr className="bg-zinc-50/50 dark:bg-zinc-950/40 border-b border-zinc-200 dark:border-zinc-800 text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em]">
+                                <th className="px-6 py-3 w-12 text-center">#</th>
+                                <th className="px-6 py-3">Identity & Intent</th>
+                                <th className="px-6 py-3">Parent Root</th>
+                                <th className="px-6 py-3 w-24 text-center">Order</th>
+                                <th className="px-6 py-3 text-right w-52">Operations</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800/50">
@@ -301,41 +306,35 @@ const SubTopic = () => {
                                 </tr>
                             ) : (
                                 paginatedSubTopics.map((st, idx) => (
-                                    <tr key={st.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/20 transition-colors">
-                                        <td className="px-6 py-4 font-mono text-[11px] text-zinc-400 text-center">
+                                    <tr key={st.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/20 transition-colors border-b border-zinc-100 dark:border-zinc-800/50">
+                                        <td className="px-6 py-2.5 font-mono text-[10px] text-zinc-400 text-center">
                                             {((page - 1) * limit + idx + 1).toString().padStart(2, '0')}
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-6 py-2.5">
                                             <div className="flex items-start gap-4">
-                                                <div className="w-9 h-9 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-500 font-mono text-[10px] font-bold uppercase shrink-0">
-                                                    {st.icon || 'ST'}
+                                                <div className="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-500 font-mono text-[9px] font-bold uppercase shrink-0">
+                                                    {st.icon?.substring(0, 2) || 'ST'}
                                                 </div>
                                                 <div className="min-w-0">
-                                                    <p className="font-bold text-zinc-900 dark:text-zinc-100 text-sm leading-tight">{st.title || st.name}</p>
-                                                    <p className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-1 line-clamp-1">{st.id}</p>
+                                                    <p className="font-black text-zinc-900 dark:text-zinc-100 text-[13px] leading-tight truncate">{st.title || st.name}</p>
+                                                    <p className="text-[10px] text-zinc-400 dark:text-zinc-500 truncate">{st.id}</p>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <div className="inline-flex items-center gap-2 px-3 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-[10px] font-bold text-zinc-500 uppercase tracking-tight">
-                                                <FolderOpen className="w-3 h-3 text-indigo-500" />
-                                                {getTopicName(st.topicId)}
+                                        <td className="px-6 py-2.5 text-[10px]">
+                                            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded-lg font-bold text-zinc-500 uppercase truncate max-w-[140px]">
+                                                <FolderOpen className="w-3 h-3 text-indigo-500 shrink-0" />
+                                                <span className="truncate">{getTopicName(st.topicId)}</span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-center">
-                                            <span className="font-mono text-xs font-bold text-indigo-600 dark:text-indigo-400">{st.order || 0}</span>
+                                        <td className="px-6 py-2.5 text-center">
+                                            <span className="font-mono text-[11px] font-bold text-indigo-600 dark:text-indigo-400">{st.order || 0}</span>
                                         </td>
-                                        <td className="px-6 py-4 text-right overflow-visible">
-                                            <div className="flex items-center justify-end gap-2">
-                                                <button onClick={() => openView(st)} className="inline-flex items-center gap-1.5 text-[10px] font-bold text-green-600 dark:text-green-400 bg-green-500/10 hover:bg-green-500/20 px-3 py-2 rounded-lg transition-colors border border-green-500/20 uppercase tracking-widest">
-                                                    <Eye className="w-3 h-3" /> View
-                                                </button>
-                                                <button onClick={() => openEdit(st)} className="inline-flex items-center gap-1.5 text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 px-3 py-2 rounded-lg transition-colors border border-amber-500/20 uppercase tracking-widest">
-                                                    <Pencil className="w-3 h-3" /> Edit
-                                                </button>
-                                                <button onClick={() => handleDelete(st)} className="inline-flex items-center gap-1.5 text-[10px] font-bold text-rose-600 dark:text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 px-3 py-2 rounded-lg transition-colors border border-rose-500/20 uppercase tracking-widest">
-                                                    <Trash2 className="w-3 h-3" /> Delete
-                                                </button>
+                                        <td className="px-6 py-2.5 text-right">
+                                            <div className="flex items-center justify-end gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
+                                                <button onClick={() => openView(st)} className="p-2 hover:bg-green-500/10 text-green-600 rounded-lg transition-all" title="View"><Eye className="w-3.5 h-3.5" /></button>
+                                                <button onClick={() => openEdit(st)} className="p-2 hover:bg-amber-500/10 text-amber-500 rounded-lg transition-all" title="Edit"><Pencil className="w-3.5 h-3.5" /></button>
+                                                <button onClick={() => handleDelete(st)} className="p-2 hover:bg-rose-500/10 text-rose-500 rounded-lg transition-all" title="Delete"><Trash2 className="w-3.5 h-3.5" /></button>
                                             </div>
                                         </td>
                                     </tr>

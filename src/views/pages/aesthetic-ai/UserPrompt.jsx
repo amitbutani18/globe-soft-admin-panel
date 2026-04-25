@@ -91,28 +91,28 @@ const UserPrompt = () => {
             {/* ── Header ─────────────────────────────────────────────── */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">Global Prompt Config</h1>
-                    <p className="text-zinc-500 dark:text-zinc-400 mt-1">
+                    <h1 className="text-2xl font-black tracking-tight text-zinc-900 dark:text-white uppercase italic">Global Prompt Config</h1>
+                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium italic">
                         Manage the primary AI instruction overlay for Aesthetic AI.
                     </p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                     <button
                         onClick={fetchPrompt}
                         disabled={loading}
-                        className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-xl transition-all font-semibold text-sm text-zinc-600 dark:text-zinc-300 disabled:opacity-50"
+                        className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-xl transition-all font-bold text-[10px] uppercase tracking-widest text-zinc-500 disabled:opacity-50"
                     >
-                        <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                        <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
                         Refresh
                     </button>
                     <button
                         onClick={() => setIsEditing(!isEditing)}
-                        className={`flex items-center gap-2 px-6 py-2.5 rounded-xl transition-all font-semibold shadow-lg active:scale-95 text-sm uppercase tracking-widest ${isEditing
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all font-bold shadow-lg active:scale-95 text-[10px] uppercase tracking-widest ${isEditing
                             ? 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
                             : 'bg-emerald-600 text-white hover:bg-emerald-500 shadow-emerald-500/20'
                             }`}
                     >
-                        {isEditing ? <X className="w-5 h-5" /> : <Pencil className="w-5 h-5" />}
+                        {isEditing ? <X className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
                         {isEditing ? 'Cancel' : 'Configure'}
                     </button>
                 </div>
@@ -120,15 +120,15 @@ const UserPrompt = () => {
 
             {/* ── Primary Config Card ────────────────────────────────── */}
             <div className="grid grid-cols-1 gap-6">
-                <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] overflow-hidden shadow-sm dark:shadow-2xl transition-all duration-500">
-                    <div className="p-8 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/20 flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-600">
-                                <Fingerprint className="w-6 h-6" />
+                <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm dark:shadow-2xl transition-all duration-500">
+                    <div className="px-5 py-4 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/20 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-600">
+                                <Fingerprint className="w-4 h-4" />
                             </div>
                             <div>
-                                <h2 className="text-lg font-bold uppercase tracking-tight">Main Prompt Definition</h2>
-                                <p className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest">
+                                <h2 className="text-sm font-bold uppercase tracking-tight">Main Prompt Definition</h2>
+                                <p className="text-[9px] font-mono text-zinc-400 uppercase tracking-widest">
                                     Registry ID: {promptData?.id || 'Scanning...'}
                                 </p>
                             </div>
@@ -137,9 +137,9 @@ const UserPrompt = () => {
                             <button
                                 onClick={handleUpdate}
                                 disabled={syncing}
-                                className="flex items-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-emerald-500/20 active:scale-95 text-xs uppercase tracking-widest disabled:opacity-50"
+                                className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold transition-all shadow-lg shadow-emerald-500/20 active:scale-95 text-[10px] uppercase tracking-widest disabled:opacity-50"
                             >
-                                {syncing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                {syncing ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
                                 Sync Change
                             </button>
                         )}
@@ -172,12 +172,12 @@ const UserPrompt = () => {
                                             value={editValue}
                                             onChange={(e) => setEditValue(e.target.value)}
                                             rows={8}
-                                            className="w-full bg-zinc-50 dark:bg-zinc-950 border border-emerald-500/30 rounded-[2rem] px-8 py-8 text-base focus:border-emerald-500 outline-none transition-all placeholder:text-zinc-400 dark:placeholder:text-zinc-700 leading-relaxed font-bold italic shadow-inner"
+                                            className="w-full bg-zinc-50 dark:bg-zinc-950 border border-emerald-500/30 rounded-2xl px-6 py-6 text-sm focus:border-emerald-500 outline-none transition-all placeholder:text-zinc-400 dark:placeholder:text-zinc-700 leading-relaxed font-bold italic shadow-inner"
                                             placeholder="Enter global prompt modifiers..."
                                         />
                                     ) : (
-                                        <div className="p-10 bg-zinc-50 dark:bg-zinc-950/40 border border-zinc-100 dark:border-zinc-800 rounded-[2.5rem] shadow-inner group">
-                                            <p className="text-zinc-700 dark:text-zinc-300 leading-[2] text-xl font-bold whitespace-pre-wrap italic">
+                                        <div className="p-8 bg-zinc-50 dark:bg-zinc-950/40 border border-zinc-100 dark:border-zinc-800 rounded-3xl shadow-inner group">
+                                            <p className="text-zinc-700 dark:text-zinc-300 leading-relaxed text-lg font-bold whitespace-pre-wrap italic">
                                                 "{promptData.promts}"
                                             </p>
                                         </div>

@@ -220,67 +220,67 @@ const StoryLearning = () => {
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Header Section */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div className="flex items-center gap-6">
-                    <div className="w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-rose-500 to-pink-600 shadow-xl shadow-rose-500/20 flex items-center justify-center text-white shrink-0 transition-transform hover:scale-105 duration-300">
-                        <BookMarked className="w-8 h-8" />
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-500 to-pink-600 shadow-xl shadow-rose-500/20 flex items-center justify-center text-white shrink-0 transition-transform hover:scale-105 duration-300">
+                        <BookMarked className="w-6 h-6" />
                     </div>
                     <div>
-                        <h1 className="text-4xl font-extrabold tracking-tight text-zinc-900 dark:text-white uppercase italic text-shadow-sm">Story Learning</h1>
-                        <p className="text-zinc-500 dark:text-zinc-400 mt-1 max-w-lg font-medium">
+                        <h1 className="text-2xl font-black tracking-tight text-zinc-900 dark:text-white uppercase italic">Story Learning</h1>
+                        <p className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">
                             Manage interactive story-driven training pathways for Kali Linux.
                         </p>
                     </div>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                     <button
                         onClick={fetchData}
                         disabled={loading}
-                        className="p-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-2xl transition-all text-zinc-600 dark:text-zinc-400 disabled:opacity-50"
+                        className="p-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-xl transition-all text-zinc-600 dark:text-zinc-400 disabled:opacity-50"
                         title="Resync Data"
                     >
-                        <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+                        <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                     </button>
                     <button
                         onClick={() => setIsAddModalOpen(true)}
-                        className="flex items-center gap-3 px-8 py-3.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-2xl transition-all font-bold shadow-2xl active:scale-95 text-[11px] uppercase tracking-[0.2em]"
+                        className="flex items-center gap-2 px-6 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl transition-all font-bold shadow-lg shadow-rose-500/20 active:scale-95 text-[10px] uppercase tracking-widest"
                     >
-                        <Plus className="w-4 h-4" />
+                        <Plus className="w-3.5 h-3.5" />
                         Draft New Story
                     </button>
                 </div>
             </div>
 
             {/* Stats Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {[
                     { label: 'Published Stories', value: total, icon: LayoutGrid, color: 'text-rose-500', bg: 'bg-rose-500/10' },
                     { label: 'Interactive Quizzes', value: stories.reduce((acc, s) => acc + (s.quiz?.length || 0), 0), icon: HelpCircle, color: 'text-blue-500', bg: 'bg-blue-500/10' },
                     { label: 'Production Flow', value: 'Live', icon: Activity, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
                 ].map(stat => (
-                    <div key={stat.label} className="bg-white/60 dark:bg-zinc-900/60 backdrop-blur-xl border border-zinc-200 dark:border-zinc-800 rounded-[2rem] p-6 flex items-center gap-5 transition-all hover:scale-[1.02] duration-300">
-                        <div className={`w-14 h-14 rounded-2xl ${stat.bg} flex items-center justify-center flex-shrink-0 shadow-inner`}>
-                            <stat.icon className={`w-7 h-7 ${stat.color}`} />
+                    <div key={stat.label} className="bg-white/60 dark:bg-zinc-900/60 backdrop-blur-xl border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 flex items-center gap-4 transition-all hover:scale-[1.02] duration-300">
+                        <div className={`w-10 h-10 rounded-xl ${stat.bg} flex items-center justify-center flex-shrink-0 shadow-inner`}>
+                            <stat.icon className={`w-5 h-5 ${stat.color}`} />
                         </div>
                         <div className="min-w-0">
-                            <p className="text-3xl font-black text-zinc-900 dark:text-white leading-tight">{stat.value}</p>
-                            <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">{stat.label}</p>
+                            <p className="text-xl font-black text-zinc-900 dark:text-white leading-tight">{stat.value}</p>
+                            <p className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em]">{stat.label}</p>
                         </div>
                     </div>
                 ))}
             </div>
 
             {/* Main Table Section */}
-            <div className="bg-white/40 dark:bg-zinc-900/40 backdrop-blur-2xl border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] overflow-hidden shadow-sm transition-all duration-500">
-                <div className="p-8 border-b border-zinc-200 dark:border-zinc-800 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                    <div className="relative flex-1 max-w-md">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
+            <div className="bg-white/40 dark:bg-zinc-900/40 backdrop-blur-2xl border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm transition-all duration-500">
+                <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="relative flex-1 max-w-sm">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
                         <input
                             type="text"
-                            placeholder="Search stories by title..."
+                            placeholder="Search stories..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl pl-12 pr-6 py-3.5 text-sm focus:border-rose-500/50 focus:ring-4 focus:ring-rose-500/5 outline-none transition-all placeholder:text-zinc-400"
+                            className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl pl-10 pr-4 py-2 text-xs focus:border-rose-500/50 outline-none transition-all placeholder:text-zinc-400"
                         />
                     </div>
 
@@ -307,10 +307,10 @@ const StoryLearning = () => {
                     <table className="w-full text-left border-collapse font-sans">
                         <thead>
                             <tr className="bg-zinc-50/50 dark:bg-zinc-950/20 border-b border-zinc-200 dark:border-zinc-800">
-                                <th className="px-8 py-5 text-[10px] font-black text-zinc-400 uppercase tracking-[0.25em] w-12 text-center italic">UID</th>
-                                <th className="px-8 py-5 text-[10px] font-black text-zinc-400 uppercase tracking-[0.25em]">Story Identity</th>
-                                <th className="px-8 py-5 text-[10px] font-black text-zinc-400 uppercase tracking-[0.25em] w-48 text-center italic">Interactive Nodes</th>
-                                <th className="px-8 py-5 text-[10px] font-black text-zinc-400 uppercase tracking-[0.25em] w-48 text-right italic text-shadow-sm">Operations</th>
+                                <th className="px-5 py-3 text-[9px] font-black text-zinc-400 uppercase tracking-widest w-12 text-center italic">UID</th>
+                                <th className="px-5 py-3 text-[9px] font-black text-zinc-400 uppercase tracking-widest">Story Identity</th>
+                                <th className="px-5 py-3 text-[9px] font-black text-zinc-400 uppercase tracking-widest w-40 text-center italic">Nodes</th>
+                                <th className="px-5 py-3 text-[9px] font-black text-zinc-400 uppercase tracking-widest w-40 text-right italic">Operations</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-zinc-200/50 dark:divide-zinc-800/50">
@@ -340,34 +340,34 @@ const StoryLearning = () => {
                                 paginatedStories.map((story, idx) => {
                                     const row = (page - 1) * limit + idx + 1;
                                     return (
-                                        <tr key={story.id || idx} className="group hover:bg-rose-500/[0.03] transition-colors border-l-[3px] border-transparent hover:border-rose-500 duration-300">
-                                            <td className="px-8 py-6 font-mono text-[10px] text-zinc-400 group-hover:text-rose-500 transition-colors uppercase text-center font-black italic">
+                                        <tr key={story.id || idx} className="group hover:bg-rose-500/[0.03] transition-colors border-l-2 border-transparent hover:border-rose-500 duration-300">
+                                            <td className="px-5 py-3 font-mono text-[10px] text-zinc-400 group-hover:text-rose-500 transition-colors uppercase text-center font-black italic">
                                                 {row.toString().padStart(2, '0')}
                                             </td>
-                                            <td className="px-8 py-6">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="w-12 h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-500 group-hover:bg-rose-500/10 group-hover:text-rose-500 transition-all shadow-inner group-hover:scale-110 duration-300">
-                                                        <FileText className="w-6 h-6" />
+                                            <td className="px-5 py-3">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-500 group-hover:bg-rose-500/10 group-hover:text-rose-500 transition-all shadow-inner group-hover:scale-105 duration-300">
+                                                        <FileText className="w-4 h-4" />
                                                     </div>
                                                     <div>
-                                                        <p className="font-black text-zinc-900 dark:text-zinc-100 text-base tracking-tight mb-0.5 group-hover:translate-x-1 transition-transform">{story.title}</p>
-                                                        <p className="text-[11px] text-zinc-500 dark:text-zinc-500 font-medium line-clamp-1 italic max-w-md">{story.storyContent?.substring(0, 80) || 'No narrative data provided.'}...</p>
+                                                        <p className="font-black text-zinc-900 dark:text-zinc-100 text-xs tracking-tight mb-0.5">{story.title}</p>
+                                                        <p className="text-[10px] text-zinc-500 dark:text-zinc-500 font-medium line-clamp-1 italic max-w-xs">{story.storyContent?.substring(0, 60) || 'None'}...</p>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-8 py-6 text-center">
-                                                <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full group-hover:bg-blue-500 group-hover:text-white transition-all duration-300">
-                                                    <HelpCircle className="w-3 h-3" />
-                                                    <span className="text-[10px] font-black uppercase tracking-wider">
-                                                        {story.quiz?.length || 0} Questions
+                                            <td className="px-5 py-3 text-center">
+                                                <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-blue-500/10 border border-blue-500/20 rounded-full text-blue-600 transition-all duration-300">
+                                                    <HelpCircle className="w-2.5 h-2.5" />
+                                                    <span className="text-[9px] font-black uppercase tracking-tight">
+                                                        {story.quiz?.length || 0} Qs
                                                     </span>
                                                 </div>
                                             </td>
-                                            <td className="px-8 py-6 text-right">
-                                                <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity translate-x-4 group-hover:translate-x-0 duration-300">
-                                                    <button onClick={() => openView(story)} className="p-3 hover:bg-rose-500/10 text-rose-500 rounded-2xl transition-all hover:shadow-lg hover:shadow-rose-500/10 border border-transparent hover:border-rose-500/20" title="Inspect Narrative"><Eye className="w-4 h-4" /></button>
-                                                    <button onClick={() => openEdit(story)} className="p-3 hover:bg-blue-500/10 text-blue-500 rounded-2xl transition-all hover:shadow-lg hover:shadow-blue-500/10 border border-transparent hover:border-blue-500/20" title="Manifest Rewrite"><Pencil className="w-4 h-4" /></button>
-                                                    <button onClick={() => handleDelete(story)} className="p-3 hover:bg-rose-500/10 text-rose-500 rounded-2xl transition-all hover:shadow-lg hover:shadow-rose-500/10 border border-transparent hover:border-rose-500/20" title="Terminate Node"><Trash2 className="w-4 h-4" /></button>
+                                            <td className="px-5 py-3 text-right">
+                                                <div className="flex items-center justify-end gap-1.5 transition-opacity duration-300">
+                                                    <button onClick={() => openView(story)} className="p-1.5 text-zinc-400 hover:text-rose-500 transition-colors" title="Inspect"><Eye className="w-3.5 h-3.5" /></button>
+                                                    <button onClick={() => openEdit(story)} className="p-1.5 text-zinc-400 hover:text-blue-500 transition-colors" title="Edit"><Pencil className="w-3.5 h-3.5" /></button>
+                                                    <button onClick={() => handleDelete(story)} className="p-1.5 text-zinc-400 hover:text-rose-500 transition-colors" title="Delete"><Trash2 className="w-3.5 h-3.5" /></button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -413,40 +413,40 @@ const StoryLearning = () => {
             {isViewModalOpen && selectedStory && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-zinc-950/80 backdrop-blur-xl animate-in fade-in duration-500">
                     <div className="bg-white dark:bg-zinc-900 border border-white/20 dark:border-zinc-800 rounded-[3.5rem] w-full max-w-4xl shadow-3xl animate-in zoom-in-95 slide-in-from-bottom-10 duration-500 overflow-hidden flex flex-col max-h-[90vh]">
-                        <div className="p-12 bg-gradient-to-br from-rose-500/10 via-rose-500/5 to-transparent border-b border-zinc-200 dark:border-zinc-800 relative flex-shrink-0">
-                            <div className="absolute top-10 right-10 flex gap-2">
-                                <button onClick={() => setIsViewModalOpen(false)} className="p-4 hover:bg-white dark:hover:bg-zinc-800 rounded-2xl transition-all shadow-2xl border border-zinc-200 dark:border-zinc-700 active:scale-90 group">
-                                    <X className="w-6 h-6 text-zinc-500 group-hover:rotate-90 transition-transform duration-300" />
+                        <div className="p-6 bg-gradient-to-br from-rose-500/10 via-rose-500/5 to-transparent border-b border-zinc-200 dark:border-zinc-800 relative flex-shrink-0">
+                            <div className="absolute top-6 right-6 flex gap-2">
+                                <button onClick={() => setIsViewModalOpen(false)} className="p-2.5 hover:bg-white dark:hover:bg-zinc-800 rounded-xl transition-all shadow-sm border border-zinc-200 dark:border-zinc-700 active:scale-90 group">
+                                    <X className="w-5 h-5 text-zinc-500 group-hover:rotate-90 transition-transform duration-300" />
                                 </button>
                             </div>
-                            <div className="flex items-center gap-8 mb-8">
-                                <div className="p-5 bg-gradient-to-br from-rose-500 to-pink-600 text-white rounded-[2rem] shadow-2xl shadow-rose-500/40 animate-pulse-slow">
-                                    <BookMarked className="w-8 h-8" />
+                            <div className="flex items-center gap-6 mb-6">
+                                <div className="p-3.5 bg-gradient-to-br from-rose-500 to-pink-600 text-white rounded-2xl shadow-xl shadow-rose-500/20">
+                                    <BookMarked className="w-6 h-6" />
                                 </div>
                                 <div>
-                                    <p className="text-[11px] font-black text-rose-600 dark:text-rose-400 uppercase tracking-[0.5em] mb-2 italic">Story Objective</p>
-                                    <h2 className="text-4xl font-black text-zinc-900 dark:text-white leading-tight italic">{selectedStory.title}</h2>
-                                    <p className="text-[10px] font-mono text-zinc-400 mt-3 uppercase tracking-widest font-black opacity-60 italic">Node Hash: {selectedStory.id}</p>
+                                    <p className="text-[10px] font-black text-rose-600 dark:text-rose-400 uppercase tracking-[0.4em] mb-1 italic">Story Objective</p>
+                                    <h2 className="text-2xl font-black text-zinc-900 dark:text-white leading-tight italic">{selectedStory.title}</h2>
+                                    <p className="text-[9px] font-mono text-zinc-400 mt-2 uppercase tracking-widest font-black opacity-60">Hash: {selectedStory.id.substring(0, 12)}</p>
                                 </div>
                             </div>
 
-                            <div className="flex gap-4">
-                                <div className="bg-white/40 dark:bg-zinc-950/40 backdrop-blur-md border border-white/40 dark:border-zinc-800 p-6 rounded-[2rem] flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-full bg-rose-500/20 flex items-center justify-center">
-                                        <Activity className="w-5 h-5 text-rose-600" />
+                            <div className="flex gap-3">
+                                <div className="bg-white/40 dark:bg-zinc-950/40 backdrop-blur-md border border-white/40 dark:border-zinc-800 p-4 rounded-2xl flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-rose-500/20 flex items-center justify-center">
+                                        <Activity className="w-4 h-4 text-rose-600" />
                                     </div>
                                     <div>
-                                        <p className="text-[10px] font-black text-rose-600 uppercase tracking-widest">Questions Indexed</p>
-                                        <p className="text-2xl font-black text-zinc-900 dark:text-white">{selectedStory.quiz?.length || 0}</p>
+                                        <p className="text-[9px] font-black text-rose-600 uppercase tracking-widest">Questions</p>
+                                        <p className="text-lg font-black text-zinc-900 dark:text-white">{selectedStory.quiz?.length || 0}</p>
                                     </div>
                                 </div>
-                                <div className="bg-white/40 dark:bg-zinc-950/40 backdrop-blur-md border border-white/40 dark:border-zinc-800 p-6 rounded-[2rem] flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
-                                        <Globe className="w-5 h-5 text-blue-600" />
+                                <div className="bg-white/40 dark:bg-zinc-950/40 backdrop-blur-md border border-white/40 dark:border-zinc-800 p-4 rounded-2xl flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
+                                        <Globe className="w-4 h-4 text-blue-600" />
                                     </div>
                                     <div>
-                                        <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Last Update</p>
-                                        <p className="text-xs font-black text-zinc-900 dark:text-white italic uppercase tracking-wider">{new Date(selectedStory.updatedAt).toLocaleDateString()}</p>
+                                        <p className="text-[9px] font-black text-blue-600 uppercase tracking-widest">Update</p>
+                                        <p className="text-[10px] font-black text-zinc-900 dark:text-white uppercase tracking-tighter">{new Date(selectedStory.updatedAt).toLocaleDateString()}</p>
                                     </div>
                                 </div>
                             </div>
@@ -659,13 +659,13 @@ const StoryLearning = () => {
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-4 pt-10 sticky bottom-0 bg-white/10 backdrop-blur-md">
+                            <div className="flex items-center gap-4 pt-6 sticky bottom-0 bg-white/10 backdrop-blur-md">
                                 <button type="button" onClick={() => { setIsAddModalOpen(false); setIsEditModalOpen(false); }}
-                                    className="flex-1 px-8 py-5 rounded-3xl border border-zinc-200 dark:border-zinc-800 text-zinc-500 font-black text-[11px] uppercase tracking-[0.3em] hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all active:scale-95 italic">Discard Manifest</button>
+                                    className="flex-1 px-6 py-3 rounded-2xl border border-zinc-200 dark:border-zinc-800 text-zinc-500 font-black text-[10px] uppercase tracking-[0.2em] hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all active:scale-95 italic">Discard</button>
                                 <button type="submit" disabled={formLoading}
-                                    className={`flex-[2] py-5 rounded-3xl font-black text-[11px] uppercase tracking-[0.4em] shadow-3xl transition-all active:scale-95 flex items-center justify-center gap-4 text-white italic ${isEditModalOpen ? 'bg-blue-600 shadow-blue-500/30 hover:bg-blue-700' : 'bg-rose-600 shadow-rose-500/30 hover:bg-rose-700'}`}>
-                                    {formLoading ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-                                    {isEditModalOpen ? 'Commit Changes' : 'Seal Story'}
+                                    className={`flex-[2] py-3 rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] shadow-xl transition-all active:scale-95 flex items-center justify-center gap-3 text-white italic ${isEditModalOpen ? 'bg-blue-600 shadow-blue-500/20 hover:bg-blue-700' : 'bg-rose-600 shadow-rose-500/20 hover:bg-rose-700'}`}>
+                                    {formLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                    {isEditModalOpen ? 'Commit Rewrite' : 'Initialize Node'}
                                 </button>
                             </div>
                         </form>

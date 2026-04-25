@@ -240,30 +240,30 @@ const Subcategory = () => {
             {/* ── Header ─────────────────────────────────────────────── */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Sub-Matrix Registry</h1>
-                    <p className="text-zinc-500 dark:text-zinc-400 mt-1">
+                    <h1 className="text-2xl font-black tracking-tight text-zinc-900 dark:text-white uppercase italic">Sub-Matrix Registry</h1>
+                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium italic">
                         Configure specific AI personas and generative prompts.
                         {pagination.total_items > 0 && (
-                            <span className="ml-2 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full uppercase tracking-widest">
+                            <span className="ml-2 text-[9px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full uppercase tracking-widest">
                                 {pagination.total_items} nodes
                             </span>
                         )}
                     </p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                     <button
                         onClick={() => fetchSubcategories(page, limit)}
                         disabled={loading}
-                        className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-xl transition-all font-semibold text-sm text-zinc-600 dark:text-zinc-300 disabled:opacity-50"
+                        className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-xl transition-all font-bold text-[10px] uppercase tracking-widest text-zinc-500 disabled:opacity-50"
                     >
-                        <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                        <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
                         Sync
                     </button>
                     <button
                         onClick={() => setIsAddModalOpen(true)}
-                        className="flex items-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl transition-all font-semibold shadow-lg shadow-emerald-500/20 active:scale-95 text-sm text-white"
+                        className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-xl transition-all font-bold shadow-lg shadow-emerald-500/20 active:scale-95 text-[10px] uppercase tracking-widest text-white"
                     >
-                        <Plus className="w-5 h-5" />
+                        <Plus className="w-4 h-4" />
                         Create Node
                     </button>
                 </div>
@@ -497,12 +497,12 @@ const Subcategory = () => {
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-zinc-50/50 dark:bg-zinc-950/40 border-b border-zinc-200 dark:border-zinc-800">
-                                <th className="px-5 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] w-10">#</th>
-                                <th className="px-5 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em]">Node / Category</th>
-                                <th className="px-5 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em]">Reference Preview</th>
-                                <th className="px-5 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] w-32">Sync Date</th>
-                                <th className="px-5 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] w-24 text-center">Status</th>
-                                <th className="px-5 py-4 text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] text-right w-36">Actions</th>
+                                <th className="px-5 py-2.5 text-[9px] font-bold text-zinc-500 uppercase tracking-[0.2em] w-10">#</th>
+                                <th className="px-5 py-2.5 text-[9px] font-bold text-zinc-500 uppercase tracking-[0.2em]">Node / Category</th>
+                                <th className="px-5 py-2.5 text-[9px] font-bold text-zinc-500 uppercase tracking-[0.2em]">Reference Preview</th>
+                                <th className="px-5 py-2.5 text-[9px] font-bold text-zinc-500 uppercase tracking-[0.2em] w-32">Sync Date</th>
+                                <th className="px-5 py-2.5 text-[9px] font-bold text-zinc-500 uppercase tracking-[0.2em] w-24 text-center">Status</th>
+                                <th className="px-5 py-2.5 text-[9px] font-bold text-zinc-500 uppercase tracking-[0.2em] text-right w-36">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800/50">
@@ -528,63 +528,63 @@ const Subcategory = () => {
                                     const row = (pagination.current_page - 1) * pagination.limit + idx + 1;
                                     return (
                                         <tr key={sub.id || idx} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-colors group">
-                                            <td className="px-5 py-4 font-mono text-xs text-zinc-400 dark:text-zinc-600 w-10">{sub.seq_num || row}</td>
+                                            <td className="px-5 py-2.5 font-mono text-[10px] text-zinc-400 dark:text-zinc-600 w-10">{sub.seq_num || row}</td>
 
-                                            <td className="px-5 py-4">
-                                                <p className="font-bold text-zinc-900 dark:text-zinc-100 text-sm leading-snug mb-1 uppercase tracking-tight">
+                                            <td className="px-5 py-2.5">
+                                                <p className="font-bold text-zinc-900 dark:text-zinc-100 text-xs leading-snug mb-0.5 uppercase tracking-tight">
                                                     {sub.name}
                                                 </p>
-                                                <p className="text-[10px] font-mono text-zinc-400 dark:text-zinc-500 leading-relaxed uppercase truncate max-w-[200px]">
+                                                <p className="text-[9px] font-mono text-zinc-400 dark:text-zinc-500 leading-relaxed uppercase truncate max-w-[200px]">
                                                     Parent: {categories.find(c => c.id === sub.CategoryId)?.name || sub.CategoryId}
                                                 </p>
                                             </td>
 
-                                            <td className="px-5 py-4">
+                                            <td className="px-5 py-2.5">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-12 h-12 rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 relative group/img shadow-sm">
+                                                    <div className="w-10 h-10 rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 relative group/img shadow-sm">
                                                         <img src={sub.refImage} className="w-full h-full object-cover" alt="ref" />
                                                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
-                                                            <ImageIcon className="w-4 h-4 text-white" />
+                                                            <Eye className="w-3.5 h-3.5 text-white" />
                                                         </div>
                                                     </div>
                                                     <div className="min-w-0">
-                                                        <p className="text-[10px] text-zinc-400 uppercase font-black mb-1">AI Prompt Snippet</p>
-                                                        <p className="text-[11px] text-zinc-600 dark:text-zinc-400 italic line-clamp-1 max-w-[300px]">
+                                                        <p className="text-[9px] text-zinc-400 uppercase font-black mb-0.5">AI Persona</p>
+                                                        <p className="text-[10px] text-zinc-600 dark:text-zinc-400 italic line-clamp-1 max-w-[250px]">
                                                             "{sub.prompt}"
                                                         </p>
                                                     </div>
                                                 </div>
                                             </td>
 
-                                            <td className="px-5 py-4 w-32 text-[11px] text-zinc-500 font-mono">
+                                            <td className="px-5 py-2.5 w-32 text-[10px] text-zinc-500 font-mono">
                                                 {formatDate(sub.updatedAt || sub.createdAt)}
                                             </td>
 
-                                            <td className="px-5 py-4 w-24 text-center">
-                                                <span className={`inline-flex items-center gap-1 text-[9px] font-bold ${sub.is_active ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20' : 'text-rose-600 dark:text-rose-400 bg-rose-500/10 border-rose-500/20'} px-2 py-0.5 rounded-full uppercase tracking-widest`}>
+                                            <td className="px-5 py-2.5 w-24 text-center">
+                                                <span className={`inline-flex items-center gap-1 text-[8px] font-bold ${sub.is_active ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20' : 'text-rose-600 dark:text-rose-400 bg-rose-500/10 border-rose-500/20'} px-2 py-0.5 rounded-full uppercase tracking-widest`}>
                                                     {sub.is_active ? 'Active' : 'Offline'}
                                                 </span>
                                             </td>
 
-                                            <td className="px-5 py-4 text-right w-52">
-                                                <div className="flex items-center justify-end gap-2 transition-opacity">
+                                            <td className="px-5 py-2.5 text-right w-52">
+                                                <div className="flex items-center justify-end gap-1.5 transition-opacity">
                                                     <button
                                                         onClick={() => handleView(sub.id)}
-                                                        className="inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 px-3 py-1.5 rounded-lg transition-colors border border-emerald-500/20 uppercase tracking-widest"
+                                                        className="inline-flex items-center gap-1.5 text-[9px] font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 px-2.5 py-1.5 rounded-lg transition-colors border border-emerald-500/10 uppercase tracking-widest"
                                                     >
                                                         <Eye className="w-3 h-3" />
                                                         View
                                                     </button>
                                                     <button
                                                         onClick={() => handleEdit(sub)}
-                                                        className="inline-flex items-center gap-1.5 text-[10px] font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 px-3 py-1.5 rounded-lg transition-colors border border-amber-500/20 uppercase tracking-widest"
+                                                        className="inline-flex items-center gap-1.5 text-[9px] font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 px-2.5 py-1.5 rounded-lg transition-colors border border-amber-500/10 uppercase tracking-widest"
                                                     >
                                                         <Pencil className="w-3 h-3" />
                                                         Edit
                                                     </button>
                                                     <button
                                                         onClick={() => handleDelete(sub.id)}
-                                                        className="inline-flex items-center gap-1.5 text-[10px] font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 px-3 py-1.5 rounded-lg transition-colors border border-rose-500/20 uppercase tracking-widest"
+                                                        className="inline-flex items-center gap-1.5 text-[9px] font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 px-2.5 py-1.5 rounded-lg transition-colors border border-rose-500/10 uppercase tracking-widest"
                                                     >
                                                         <Trash2 className="w-3 h-3" />
                                                         Drop

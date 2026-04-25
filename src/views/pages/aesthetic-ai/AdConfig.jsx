@@ -99,38 +99,37 @@ const AdConfig = () => {
     return (
         <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
             {/* Header Section */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 p-8 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] shadow-sm shadow-indigo-500/5">
-                <div className="space-y-1">
-                    <h1 className="text-3xl font-black tracking-tight text-zinc-900 dark:text-white uppercase">Ad Settings</h1>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-sm">
+                <div className="space-y-0.5">
+                    <h1 className="text-2xl font-black tracking-tight text-zinc-900 dark:text-white uppercase italic">Ad Settings</h1>
                     <div className="flex items-center gap-2">
-                        <Settings className="w-4 h-4 text-indigo-500" />
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mt-0.5">Control Panel Node</p>
+                        <Settings className="w-3.5 h-3.5 text-indigo-500" />
+                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-500">Live Infrastructure</p>
                     </div>
-                    <p className="text-[9px] font-mono text-zinc-400 mt-1 uppercase">ID: {configId}</p>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                     {!isEditing ? (
                         <button
                             onClick={() => setIsEditing(true)}
-                            className="flex items-center gap-2 px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-bold transition-all shadow-xl shadow-indigo-600/20 active:scale-95 text-xs uppercase tracking-widest"
+                            className="flex items-center gap-2 px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-all shadow-lg active:scale-95 text-[10px] uppercase tracking-widest"
                         >
-                            <Pencil className="w-4 h-4" /> Edit
+                            <Pencil className="w-3.5 h-3.5" /> Edit
                         </button>
                     ) : (
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
                             <button
                                 onClick={() => setIsEditing(false)}
-                                className="px-6 py-3 text-zinc-500 font-bold hover:text-zinc-900 dark:hover:text-zinc-200 transition-colors text-xs uppercase tracking-widest"
+                                className="px-4 py-2 text-zinc-500 font-bold hover:text-zinc-900 dark:hover:text-zinc-200 transition-colors text-[10px] uppercase tracking-widest"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleSave}
                                 disabled={saving}
-                                className="flex items-center gap-2 px-10 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-bold transition-all shadow-xl shadow-indigo-600/20 active:scale-95 text-xs uppercase tracking-widest disabled:opacity-50"
+                                className="flex items-center gap-2 px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-all shadow-lg active:scale-95 text-[10px] uppercase tracking-widest disabled:opacity-50"
                             >
-                                {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                {saving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
                                 {saving ? 'Saving...' : 'Save'}
                             </button>
                         </div>
