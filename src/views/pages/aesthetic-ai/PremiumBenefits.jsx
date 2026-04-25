@@ -15,6 +15,7 @@ import {
     Loader2
 } from 'lucide-react';
 import aestheticBenefitsService from '../../../models/aestheticBenefitsService';
+import ConfirmationModal from '../../../components/ConfirmationModal';
 
 const PremiumBenefits = () => {
     const [loading, setLoading] = useState(true);
@@ -25,6 +26,9 @@ const PremiumBenefits = () => {
     const [editingIndex, setEditingIndex] = useState(null);
     const [editingValue, setEditingValue] = useState('');
     const [isEditing, setIsEditing] = useState(false);
+
+    // Confirmation State
+    const [confirmConfig, setConfirmConfig] = useState({ isOpen: false, type: 'warning', title: '', message: '', onConfirm: null });
 
     const fetchBenefits = useCallback(async () => {
         setLoading(true);
@@ -58,20 +62,38 @@ const PremiumBenefits = () => {
             console.error(error);
         } finally {
             setSaving(false);
+            setConfirmConfig({ ...confirmConfig, isOpen: false });
         }
     };
 
-    const handleAdd = async (e) => {
+    const handleAdd = (e) => {
         if (e) e.preventDefault();
         if (!newBenefit.trim()) return;
-        const updated = [...benefits, newBenefit.trim()];
-        await syncBenefits(updated);
-        setNewBenefit('');
+
+        setConfirmConfig({
+            isOpen: true,
+            type: 'success',
+            title: 'Grant New Benefit',
+            message: 'Are you sure you want to initialize this new premium benefit? It will be immediately available to all subscribers.',
+            onConfirm: async () => {
+                const updated = [...benefits, newBenefit.trim()];
+                await syncBenefits(updated);
+                setNewBenefit('');
+            }
+        });
     };
 
-    const handleDelete = async (index) => {
-        const updated = benefits.filter((_, i) => i !== index);
-        await syncBenefits(updated);
+    const handleDelete = (index) => {
+        setConfirmConfig({
+            isOpen: true,
+            type: 'danger',
+            title: 'Revoke Benefit',
+            message: 'Are you sure you want to remove this premium benefit? Users will lose access to this feature immediately.',
+            onConfirm: () => {
+                const updated = benefits.filter((_, i) => i !== index);
+                syncBenefits(updated);
+            }
+        });
     };
 
     const startEditing = (index) => {
@@ -84,12 +106,21 @@ const PremiumBenefits = () => {
         setEditingValue('');
     };
 
-    const handleSaveEdit = async (index) => {
+    const handleSaveEdit = (index) => {
         if (!editingValue.trim()) return;
-        const updated = benefits.map((b, i) => i === index ? editingValue.trim() : b);
-        await syncBenefits(updated);
-        setEditingIndex(null);
-        setEditingValue('');
+
+        setConfirmConfig({
+            isOpen: true,
+            type: 'warning',
+            title: 'Re-calibrate Benefit',
+            message: 'Are you sure you want to modify this premium benefit? This change will propagate to all active subscriptions.',
+            onConfirm: async () => {
+                const updated = benefits.map((b, i) => i === index ? editingValue.trim() : b);
+                await syncBenefits(updated);
+                setEditingIndex(null);
+                setEditingValue('');
+            }
+        });
     };
 
     if (loading) {
@@ -233,6 +264,14 @@ const PremiumBenefits = () => {
                     )}
                 </div>
             </div>
+            <ConfirmationModal
+                isOpen={confirmConfig.isOpen}
+                onClose={() => setConfirmConfig({ ...confirmConfig, isOpen: false })}
+                onConfirm={confirmConfig.onConfirm}
+                title={confirmConfig.title}
+                message={confirmConfig.message}
+                type={confirmConfig.type}
+            />
         </div>
     );
 };

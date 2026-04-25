@@ -17,6 +17,7 @@ import {
     Activity,
     FolderOpen
 } from 'lucide-react';
+import ConfirmationModal from '../../../components/ConfirmationModal';
 import flashedQuizService from '../../../models/flashedQuizService';
 import topicService from '../../../models/topicService';
 
@@ -30,6 +31,15 @@ const FlashedQuiz = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
+
+    // Confirmation State
+    const [confirmConfig, setConfirmConfig] = useState({
+        isOpen: false,
+        type: 'warning',
+        title: '',
+        message: '',
+        onConfirm: null
+    });
 
     // Modal States
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
@@ -104,8 +114,7 @@ const FlashedQuiz = () => {
         }
     };
 
-    const handleAddSubmit = async (e) => {
-        e.preventDefault();
+    const executeAddSubmit = async () => {
         setFormLoading(true);
         try {
             await flashedQuizService.createQuiz(formData);
@@ -116,11 +125,22 @@ const FlashedQuiz = () => {
             alert(`Failed to add quiz: ${error.message}`);
         } finally {
             setFormLoading(false);
+            setConfirmConfig(prev => ({ ...prev, isOpen: false }));
         }
     };
 
-    const handleEditSubmit = async (e) => {
+    const handleAddSubmit = (e) => {
         e.preventDefault();
+        setConfirmConfig({
+            isOpen: true,
+            type: 'success',
+            title: 'Confirm Initialization',
+            message: 'Are you sure you want to assemble this quiz node?',
+            onConfirm: executeAddSubmit
+        });
+    };
+
+    const executeEditSubmit = async () => {
         setFormLoading(true);
         try {
             // Refined payload based on production CURL
@@ -142,17 +162,40 @@ const FlashedQuiz = () => {
             alert(`Failed to update quiz: ${error.message}`);
         } finally {
             setFormLoading(false);
+            setConfirmConfig(prev => ({ ...prev, isOpen: false }));
         }
     };
 
-    const handleDelete = async (quiz) => {
-        if (!window.confirm(`Delete quiz: "${quiz.question.substring(0, 30)}..."?`)) return;
+    const handleEditSubmit = (e) => {
+        e.preventDefault();
+        setConfirmConfig({
+            isOpen: true,
+            type: 'warning',
+            title: 'Confirm Update',
+            message: 'Are you sure you want to commit these changes to the quiz node?',
+            onConfirm: executeEditSubmit
+        });
+    };
+
+    const executeDelete = async (quiz) => {
         try {
             await flashedQuizService.deleteQuiz(quiz.id);
             setQuizzes(prev => prev.filter(q => q.id !== quiz.id));
         } catch (error) {
             alert(`Failed to delete: ${error.message}`);
+        } finally {
+            setConfirmConfig(prev => ({ ...prev, isOpen: false }));
         }
+    };
+
+    const handleDelete = (quiz) => {
+        setConfirmConfig({
+            isOpen: true,
+            type: 'danger',
+            title: 'Terminate Node',
+            message: `Are you sure you want to delete this quiz node? This action cannot be undone.`,
+            onConfirm: () => executeDelete(quiz)
+        });
     };
 
     // Modal Triggers
@@ -539,6 +582,15 @@ const FlashedQuiz = () => {
                     </div>
                 </div>
             )}
+            {/* Confirmation Matrix */}
+            <ConfirmationModal
+                isOpen={confirmConfig.isOpen}
+                type={confirmConfig.type}
+                title={confirmConfig.title}
+                message={confirmConfig.message}
+                onConfirm={confirmConfig.onConfirm}
+                onCancel={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))}
+            />
         </div>
     );
 };

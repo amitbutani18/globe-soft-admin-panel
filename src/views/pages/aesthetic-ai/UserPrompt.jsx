@@ -22,6 +22,7 @@ import {
     Fingerprint
 } from 'lucide-react';
 import imagePromptService from '../../../models/imagePromptService';
+import ConfirmationModal from '../../../components/ConfirmationModal';
 
 const UserPrompt = () => {
     const [loading, setLoading] = useState(false);
@@ -29,6 +30,9 @@ const UserPrompt = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [editValue, setEditValue] = useState('');
     const [syncing, setSyncing] = useState(false);
+
+    // Confirmation State
+    const [confirmConfig, setConfirmConfig] = useState({ isOpen: false, type: 'warning', title: '', message: '', onConfirm: null });
 
     const fetchPrompt = useCallback(async () => {
         setLoading(true);
@@ -50,7 +54,7 @@ const UserPrompt = () => {
         fetchPrompt();
     }, [fetchPrompt]);
 
-    const handleUpdate = async () => {
+    const executeUpdate = async () => {
         if (!promptData?.id) return;
         setSyncing(true);
         try {
@@ -67,7 +71,18 @@ const UserPrompt = () => {
             alert(`Sync Failed: ${msg}`);
         } finally {
             setSyncing(false);
+            setConfirmConfig({ ...confirmConfig, isOpen: false });
         }
+    };
+
+    const handleUpdate = () => {
+        setConfirmConfig({
+            isOpen: true,
+            type: 'warning',
+            title: 'Synchronize Neural Core',
+            message: 'Are you sure you want to push this prompt instruction to the global matrix? This will influence all AI image generations.',
+            onConfirm: executeUpdate
+        });
     };
 
     return (
@@ -200,6 +215,14 @@ const UserPrompt = () => {
                 <p className="text-[9px] font-bold uppercase tracking-[0.5em] text-zinc-300 mx-4">Matrix Endpoint Active</p>
                 <div className="h-[1px] w-12 bg-zinc-100 dark:bg-zinc-800"></div>
             </div>
+            <ConfirmationModal
+                isOpen={confirmConfig.isOpen}
+                onClose={() => setConfirmConfig({ ...confirmConfig, isOpen: false })}
+                onConfirm={confirmConfig.onConfirm}
+                title={confirmConfig.title}
+                message={confirmConfig.message}
+                type={confirmConfig.type}
+            />
         </div>
     );
 };

@@ -19,12 +19,16 @@ import {
     Loader2
 } from 'lucide-react';
 import aestheticAdConfigService from '../../../models/aestheticAdConfigService';
+import ConfirmationModal from '../../../components/ConfirmationModal';
 
 const AdConfig = () => {
     const [configId, setConfigId] = useState('');
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
+
+    // Confirmation State
+    const [confirmConfig, setConfirmConfig] = useState({ isOpen: false, type: 'warning', title: '', message: '', onConfirm: null });
 
     const [form, setForm] = useState({
         ad_click_frequency: 5,
@@ -55,9 +59,7 @@ const AdConfig = () => {
         fetchConfig();
     }, [fetchConfig]);
 
-    const handleSave = async (e) => {
-        if (e) e.preventDefault();
-        if (!configId) return;
+    const executeSave = async () => {
         setSaving(true);
         try {
             const response = await aestheticAdConfigService.patchAdConfig(configId, form);
@@ -69,7 +71,20 @@ const AdConfig = () => {
             alert(`Unexpected error: ${err?.message}`);
         } finally {
             setSaving(false);
+            setConfirmConfig({ ...confirmConfig, isOpen: false });
         }
+    };
+
+    const handleSave = (e) => {
+        if (e) e.preventDefault();
+        if (!configId) return;
+        setConfirmConfig({
+            isOpen: true,
+            type: 'warning',
+            title: 'Commit Ad Configuration',
+            message: 'Save these settings to the live Ad server? This will affect global ad delivery.',
+            onConfirm: executeSave
+        });
     };
 
     if (loading) {
@@ -191,6 +206,14 @@ const AdConfig = () => {
                         </div>
                     </div>
                 </div>
+                <ConfirmationModal
+                    isOpen={confirmConfig.isOpen}
+                    onClose={() => setConfirmConfig({ ...confirmConfig, isOpen: false })}
+                    onConfirm={confirmConfig.onConfirm}
+                    title={confirmConfig.title}
+                    message={confirmConfig.message}
+                    type={confirmConfig.type}
+                />
             </div>
         </div>
     );

@@ -18,6 +18,7 @@ import {
     Activity
 } from 'lucide-react';
 import topicService from '../../../models/topicService';
+import ConfirmationModal from '../../../components/ConfirmationModal';
 
 const LIMIT_OPTIONS = [5, 10, 20, 50];
 
@@ -28,6 +29,9 @@ const Topics = () => {
     const [editingTopic, setEditingTopic] = useState(null);
     const [editFormData, setEditFormData] = useState({ id: '', name: '', description: '', icon: '', nativeAdIndex: 1, quizTopicName: '' });
     const [editLoading, setEditLoading] = useState(false);
+
+    // Confirmation State
+    const [confirmConfig, setConfirmConfig] = useState({ isOpen: false, type: 'warning', title: '', message: '', onConfirm: null });
     const [selectedTopic, setSelectedTopic] = useState(null);
     const [loading, setLoading] = useState(false);
     const [topics, setTopics] = useState([]);
@@ -96,8 +100,7 @@ const Topics = () => {
         setEditFormData(prev => ({ ...prev, [name]: name === 'nativeAdIndex' ? parseInt(value) || 0 : value }));
     };
 
-    const handleEditSubmit = async (e) => {
-        e.preventDefault();
+    const executeEditSubmit = async () => {
         setEditLoading(true);
         try {
             await topicService.updateTopic(editingTopic.id, editFormData);
@@ -108,21 +111,43 @@ const Topics = () => {
             alert(`Failed to update topic: ${error.message}`);
         } finally {
             setEditLoading(false);
+            setConfirmConfig({ ...confirmConfig, isOpen: false });
         }
     };
 
-    const handleDelete = async (topic) => {
-        if (!window.confirm(`Delete "${topic.name}"? This will affect sub-topics and content.`)) return;
+    const handleEditSubmit = (e) => {
+        if (e) e.preventDefault();
+        setConfirmConfig({
+            isOpen: true,
+            type: 'warning',
+            title: 'Commit Identity Shift',
+            message: 'Are you sure you want to modify this topic? This recalibrates the core knowledge pathway.',
+            onConfirm: executeEditSubmit
+        });
+    };
+
+    const executeDelete = async (topic) => {
         try {
             await topicService.deleteTopic(topic.id);
             setTopics(prev => prev.filter(t => t.id !== topic.id));
         } catch (error) {
             alert(`Failed to delete topic: ${error.message}`);
+        } finally {
+            setConfirmConfig({ ...confirmConfig, isOpen: false });
         }
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleDelete = (topic) => {
+        setConfirmConfig({
+            isOpen: true,
+            type: 'danger',
+            title: 'Terminate Registry Node',
+            message: `Are you sure you want to kill "${topic.name}"? This action is irreversible and affects all sub-matrix content.`,
+            onConfirm: () => executeDelete(topic)
+        });
+    };
+
+    const executeCreate = async () => {
         setLoading(true);
         try {
             await topicService.createTopic(formData);
@@ -133,7 +158,19 @@ const Topics = () => {
             alert(`Failed to add topic: ${error.message}`);
         } finally {
             setLoading(false);
+            setConfirmConfig({ ...confirmConfig, isOpen: false });
         }
+    };
+
+    const handleSubmit = (e) => {
+        if (e) e.preventDefault();
+        setConfirmConfig({
+            isOpen: true,
+            type: 'success',
+            title: 'Finalize Registry Entry',
+            message: 'Deploy this new knowledge node to the live environment?',
+            onConfirm: executeCreate
+        });
     };
 
     const goToPage = (p) => {
@@ -502,6 +539,14 @@ const Topics = () => {
                     </div>
                 </div>
             )}
+            <ConfirmationModal
+                isOpen={confirmConfig.isOpen}
+                onClose={() => setConfirmConfig({ ...confirmConfig, isOpen: false })}
+                onConfirm={confirmConfig.onConfirm}
+                title={confirmConfig.title}
+                message={confirmConfig.message}
+                type={confirmConfig.type}
+            />
         </div>
     );
 };

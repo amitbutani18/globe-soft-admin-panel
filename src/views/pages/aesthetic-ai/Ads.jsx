@@ -21,6 +21,7 @@ import {
     Loader2
 } from 'lucide-react';
 import aestheticAdsService from '../../../models/aestheticAdsService';
+import ConfirmationModal from '../../../components/ConfirmationModal';
 
 const Ads = () => {
     const [loading, setLoading] = useState(true);
@@ -28,6 +29,9 @@ const Ads = () => {
     const [savedOn, setSavedOn] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
     const [patchingField, setPatchingField] = useState(null);
+
+    // Unified Confirmation State
+    const [confirmConfig, setConfirmConfig] = useState({ isOpen: false, type: 'warning', title: '', message: '', onConfirm: null });
 
     const [configId, setConfigId] = useState('');
     const [originalForm, setOriginalForm] = useState(null);
@@ -57,7 +61,6 @@ const Ads = () => {
 
     const [activeTab, setActiveTab] = useState('android');
     const [customFields, setCustomFields] = useState([]);
-    const [deleteModal, setDeleteModal] = useState({ isOpen: false, type: null, index: null });
     const [createModal, setCreateModal] = useState({ isOpen: false, key: '', value: '' });
 
     const fetchAds = useCallback(async () => {
@@ -101,9 +104,7 @@ const Ads = () => {
         setIsEditing(false);
     };
 
-    const handleSave = async (e) => {
-        if (e) e.preventDefault();
-        if (!configId) return;
+    const executeSave = async () => {
         setSaving(true);
         try {
             // Combine core form and custom fields for update
@@ -123,10 +124,23 @@ const Ads = () => {
             alert(`Update failed: ${err?.message}`);
         } finally {
             setSaving(false);
+            setConfirmConfig({ ...confirmConfig, isOpen: false });
         }
     };
 
-    const handlePatch = async (field, value) => {
+    const handleSave = (e) => {
+        if (e) e.preventDefault();
+        if (!configId) return;
+        setConfirmConfig({
+            isOpen: true,
+            type: 'warning',
+            title: 'Commit Ad Registry',
+            message: 'Are you sure you want to save these global ad units? This will propagate to all active clients.',
+            onConfirm: executeSave
+        });
+    };
+
+    const executePatch = async (field, value) => {
         if (!configId) return;
         setPatchingField(field);
         try {
@@ -140,7 +154,19 @@ const Ads = () => {
             alert(`Update failed for ${field}: ${err?.message}`);
         } finally {
             setPatchingField(null);
+            setConfirmConfig({ ...confirmConfig, isOpen: false });
         }
+    };
+
+    const handlePatch = (field, value) => {
+        if (!configId) return;
+        setConfirmConfig({
+            isOpen: true,
+            type: 'warning',
+            title: 'Hot-Patch Variable',
+            message: `You are about to perform an atomic update on [${field}]. This will bypass the global sync and update the production unit immediately.`,
+            onConfirm: () => executePatch(field, value)
+        });
     };
 
     const handleChange = (key, value) => {
@@ -167,17 +193,20 @@ const Ads = () => {
     };
 
     const openDeleteModal = (type, index) => {
-        setDeleteModal({ isOpen: true, type, index });
-    };
-
-    const handleConfirmDelete = () => {
-        const { type, index } = deleteModal;
-        if (type === 'custom') {
-            setCustomFields(prev => prev.filter((_, i) => i !== index));
-        } else if (type === 'core') {
-            setForm(prev => ({ ...prev, [index]: '' }));
-        }
-        setDeleteModal({ isOpen: false, type: null, index: null });
+        setConfirmConfig({
+            isOpen: true,
+            type: 'danger',
+            title: 'Remove Variable',
+            message: 'Are you sure you want to remove this ad unit? This action cannot be undone.',
+            onConfirm: () => {
+                if (type === 'custom') {
+                    setCustomFields(prev => prev.filter((_, i) => i !== index));
+                } else if (type === 'core') {
+                    setForm(prev => ({ ...prev, [index]: '' }));
+                }
+                setConfirmConfig({ ...confirmConfig, isOpen: false });
+            }
+        });
     };
 
     const handleCopy = (value) => {
@@ -256,29 +285,7 @@ const Ads = () => {
         );
     };
 
-    const ConfirmModal = () => {
-        if (!deleteModal.isOpen) return null;
-        return (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                <div className="absolute inset-0 bg-zinc-950/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setDeleteModal({ isOpen: false, type: null, index: null })} />
-                <div className="relative w-full max-w-md bg-white dark:bg-zinc-900 rounded-[2.5rem] p-8 shadow-2xl animate-in zoom-in-95 duration-200 border border-zinc-200 dark:border-zinc-800">
-                    <div className="flex flex-col items-center text-center gap-6">
-                        <div className="p-4 rounded-full bg-rose-500/10 text-rose-500">
-                            <Trash2 className="w-8 h-8" />
-                        </div>
-                        <div className="space-y-2">
-                            <h3 className="text-xl font-black text-zinc-900 dark:text-white uppercase tracking-tight">Remove Variable</h3>
-                            <p className="text-sm text-zinc-500 font-medium">Are you sure you want to remove this ad unit? This action cannot be undone once committed.</p>
-                        </div>
-                        <div className="flex items-center gap-3 w-full">
-                            <button onClick={() => setDeleteModal({ isOpen: false, type: null, index: null })} className="flex-1 px-6 py-3 rounded-2xl font-bold text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all text-[10px] uppercase tracking-widest">Cancel</button>
-                            <button onClick={handleConfirmDelete} className="flex-1 px-6 py-3 rounded-2xl font-bold text-white bg-rose-500 hover:bg-rose-400 shadow-lg shadow-rose-500/20 transition-all text-[10px] uppercase tracking-widest">Delete Variable</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    };
+    const ConfirmModalPlaceholder = () => null;
 
     return (
         <div className="max-w-6xl mx-auto space-y-8 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -496,7 +503,14 @@ const Ads = () => {
             </div>
 
             <CreateModal />
-            <ConfirmModal />
+            <ConfirmationModal
+                isOpen={confirmConfig.isOpen}
+                onClose={() => setConfirmConfig({ ...confirmConfig, isOpen: false })}
+                onConfirm={confirmConfig.onConfirm}
+                title={confirmConfig.title}
+                message={confirmConfig.message}
+                type={confirmConfig.type}
+            />
 
             {/* Notification Toast */}
             {savedOn && !isEditing && (

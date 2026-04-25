@@ -16,6 +16,7 @@ import {
     Activity,
     Flag
 } from 'lucide-react';
+import ConfirmationModal from '../../../components/ConfirmationModal';
 import languageService from '../../../models/languageService';
 
 const Languages = () => {
@@ -23,6 +24,15 @@ const Languages = () => {
     const [languages, setLanguages] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+
+    // Confirmation State
+    const [confirmConfig, setConfirmConfig] = useState({
+        isOpen: false,
+        type: 'warning',
+        title: '',
+        message: '',
+        onConfirm: null
+    });
 
     // Modal States
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -85,8 +95,7 @@ const Languages = () => {
         }));
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const executeSubmit = async () => {
         setFormLoading(true);
         try {
             const res = await languageService.createLanguage(formData);
@@ -98,11 +107,22 @@ const Languages = () => {
             alert(`Failed to add language: ${error.message}`);
         } finally {
             setFormLoading(false);
+            setConfirmConfig(prev => ({ ...prev, isOpen: false }));
         }
     };
 
-    const handleEditSubmit = async (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
+        setConfirmConfig({
+            isOpen: true,
+            type: 'success',
+            title: 'Confirm Node Initialization',
+            message: 'Are you sure you want to initialize this localization node?',
+            onConfirm: executeSubmit
+        });
+    };
+
+    const executeEditSubmit = async () => {
         setFormLoading(true);
         try {
             const res = await languageService.updateLanguage(editingLang.id, editFormData);
@@ -114,18 +134,41 @@ const Languages = () => {
             alert(`Failed to update language: ${error.message}`);
         } finally {
             setFormLoading(false);
+            setConfirmConfig(prev => ({ ...prev, isOpen: false }));
         }
     };
 
-    const handleDelete = async (lang) => {
-        if (!window.confirm(`Delete language: "${lang.name}"?`)) return;
+    const handleEditSubmit = (e) => {
+        e.preventDefault();
+        setConfirmConfig({
+            isOpen: true,
+            type: 'warning',
+            title: 'Confirm Changes',
+            message: 'Are you sure you want to update this globalization node?',
+            onConfirm: executeEditSubmit
+        });
+    };
+
+    const executeDelete = async (lang) => {
         try {
             const res = await languageService.deleteLanguage(lang.id);
             fetchData();
             if (res.message) alert(res.message);
         } catch (error) {
             alert(`Failed to delete: ${error.message}`);
+        } finally {
+            setConfirmConfig(prev => ({ ...prev, isOpen: false }));
         }
+    };
+
+    const handleDelete = (lang) => {
+        setConfirmConfig({
+            isOpen: true,
+            type: 'danger',
+            title: 'Decommission Node',
+            message: `Are you sure you want to delete "${lang.name}"? This action cannot be undone.`,
+            onConfirm: () => executeDelete(lang)
+        });
     };
 
     const toggleStatus = async (lang) => {
@@ -332,6 +375,15 @@ const Languages = () => {
                     </div>
                 </div>
             )}
+            {/* Confirmation Matrix */}
+            <ConfirmationModal
+                isOpen={confirmConfig.isOpen}
+                type={confirmConfig.type}
+                title={confirmConfig.title}
+                message={confirmConfig.message}
+                onConfirm={confirmConfig.onConfirm}
+                onCancel={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))}
+            />
         </div>
     );
 };

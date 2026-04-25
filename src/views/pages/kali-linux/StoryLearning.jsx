@@ -18,6 +18,7 @@ import {
     LayoutGrid,
     CheckCircle2
 } from 'lucide-react';
+import ConfirmationModal from '../../../components/ConfirmationModal';
 import storyLearningService from '../../../models/storyLearningService';
 import topicService from '../../../models/topicService';
 
@@ -31,6 +32,15 @@ const StoryLearning = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
+
+    // Confirmation State
+    const [confirmConfig, setConfirmConfig] = useState({
+        isOpen: false,
+        type: 'warning',
+        title: '',
+        message: '',
+        onConfirm: null
+    });
 
     // Modal States
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
@@ -87,8 +97,7 @@ const StoryLearning = () => {
         setEditFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const executeSubmit = async () => {
         setFormLoading(true);
         try {
             const res = await storyLearningService.createStory(formData);
@@ -102,11 +111,22 @@ const StoryLearning = () => {
             alert(`Failed to add story: ${error.message}`);
         } finally {
             setFormLoading(false);
+            setConfirmConfig(prev => ({ ...prev, isOpen: false }));
         }
     };
 
-    const handleEditSubmit = async (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
+        setConfirmConfig({
+            isOpen: true,
+            type: 'success',
+            title: 'Confirm Submission',
+            message: 'Are you sure you want to create this story narrative?',
+            onConfirm: executeSubmit
+        });
+    };
+
+    const executeEditSubmit = async () => {
         setFormLoading(true);
         try {
             const payload = {
@@ -122,11 +142,22 @@ const StoryLearning = () => {
             alert(`Failed to update story: ${error.message}`);
         } finally {
             setFormLoading(false);
+            setConfirmConfig(prev => ({ ...prev, isOpen: false }));
         }
     };
 
-    const handleDelete = async (story) => {
-        if (!window.confirm(`Delete story: "${story.title}"?`)) return;
+    const handleEditSubmit = (e) => {
+        e.preventDefault();
+        setConfirmConfig({
+            isOpen: true,
+            type: 'warning',
+            title: 'Confirm Changes',
+            message: 'Are you sure you want to update this story narrative?',
+            onConfirm: executeEditSubmit
+        });
+    };
+
+    const executeDelete = async (story) => {
         try {
             const res = await storyLearningService.deleteStory(story.id);
             setStories(prev => prev.filter(s => s.id !== story.id));
@@ -135,7 +166,19 @@ const StoryLearning = () => {
             }
         } catch (error) {
             alert(`Failed to delete: ${error.message}`);
+        } finally {
+            setConfirmConfig(prev => ({ ...prev, isOpen: false }));
         }
+    };
+
+    const handleDelete = (story) => {
+        setConfirmConfig({
+            isOpen: true,
+            type: 'danger',
+            title: 'Terminate Story',
+            message: `Are you sure you want to delete "${story.title}"? This action cannot be undone.`,
+            onConfirm: () => executeDelete(story)
+        });
     };
 
     // Modal Triggers
@@ -629,6 +672,15 @@ const StoryLearning = () => {
                     </div>
                 </div>
             )}
+            {/* Confirmation Matrix */}
+            <ConfirmationModal
+                isOpen={confirmConfig.isOpen}
+                type={confirmConfig.type}
+                title={confirmConfig.title}
+                message={confirmConfig.message}
+                onConfirm={confirmConfig.onConfirm}
+                onCancel={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))}
+            />
         </div>
     );
 };

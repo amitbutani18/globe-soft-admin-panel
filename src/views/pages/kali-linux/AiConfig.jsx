@@ -14,6 +14,7 @@ import {
     X
 } from 'lucide-react';
 import kaliAiConfigService from '../../../models/kaliAiConfigService';
+import ConfirmationModal from '../../../components/ConfirmationModal';
 
 const AiConfig = () => {
     const [configId, setConfigId] = useState(null);
@@ -29,6 +30,9 @@ const AiConfig = () => {
     const [saving, setSaving] = useState(false);
     const [savedOn, setSavedOn] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
+
+    // Confirmation State
+    const [confirmConfig, setConfirmConfig] = useState({ isOpen: false, type: 'warning', title: '', message: '', onConfirm: null });
 
     // ── Fetch Initial Data ───────────────────────────────────────────────────
     const fetchConfig = useCallback(async () => {
@@ -65,12 +69,7 @@ const AiConfig = () => {
         setIsEditing(false);
     };
 
-    const handleSave = async (e) => {
-        e.preventDefault();
-        if (!configId) {
-            alert('Wait for configuration to load initially before saving.');
-            return;
-        }
+    const executeSave = async () => {
         setSaving(true);
         setSavedOn(null);
         try {
@@ -83,7 +82,23 @@ const AiConfig = () => {
             alert(`Failed back sync patch: ${err?.message}`);
         } finally {
             setSaving(false);
+            setConfirmConfig({ ...confirmConfig, isOpen: false });
         }
+    };
+
+    const handleSave = (e) => {
+        if (e) e.preventDefault();
+        if (!configId) {
+            alert('Wait for configuration to load initially before saving.');
+            return;
+        }
+        setConfirmConfig({
+            isOpen: true,
+            type: 'warning',
+            title: 'Deploy AI Architecture',
+            message: 'Are you sure you want to update the Kali AI Core settings? This affects all offensive security simulations.',
+            onConfirm: executeSave
+        });
     };
 
     const handleChange = (key, value) => {
@@ -275,6 +290,14 @@ const AiConfig = () => {
                 </div>
             </form>
 
+            <ConfirmationModal
+                isOpen={confirmConfig.isOpen}
+                onClose={() => setConfirmConfig({ ...confirmConfig, isOpen: false })}
+                onConfirm={confirmConfig.onConfirm}
+                title={confirmConfig.title}
+                message={confirmConfig.message}
+                type={confirmConfig.type}
+            />
         </div>
     );
 };
