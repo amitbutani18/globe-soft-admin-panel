@@ -15,6 +15,7 @@ import {
     Shield
 } from 'lucide-react';
 import aestheticLimitsService from '../../../models/aestheticLimitsService';
+import ConfirmationModal from '../../../components/ConfirmationModal';
 
 const ImageLimit = () => {
     const [id, setId] = useState('');
@@ -22,6 +23,9 @@ const ImageLimit = () => {
     const [saving, setSaving] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [patchingField, setPatchingField] = useState(null);
+
+    // Confirmation State
+    const [confirmConfig, setConfirmConfig] = useState({ isOpen: false, type: 'warning', title: '', message: '', onConfirm: null });
 
     const [form, setForm] = useState({
         free_user_limit: 0,
@@ -63,9 +67,7 @@ const ImageLimit = () => {
         setIsEditing(false);
     };
 
-    const handleSave = async (e) => {
-        if (e) e.preventDefault();
-        if (!id) return;
+    const executeSave = async () => {
         setSaving(true);
         try {
             const response = await aestheticLimitsService.updateLimits(id, form);
@@ -78,7 +80,20 @@ const ImageLimit = () => {
             alert(`Update failed: ${err?.message}`);
         } finally {
             setSaving(false);
+            setConfirmConfig({ ...confirmConfig, isOpen: false });
         }
+    };
+
+    const handleSave = (e) => {
+        if (e) e.preventDefault();
+        if (!id) return;
+        setConfirmConfig({
+            isOpen: true,
+            type: 'warning',
+            title: 'Recalibrate Quota Matrix',
+            message: 'Are you sure you want to enforce these new image generation limits globally?',
+            onConfirm: executeSave
+        });
     };
 
     const handlePatch = async (field, value) => {
@@ -247,6 +262,14 @@ const ImageLimit = () => {
                     These limits are exclusively applied within the Aesthetic AI module. Changes are synchronized in real-time with the production backend and persist across all user sessions.
                 </p>
             </div>
+            <ConfirmationModal
+                isOpen={confirmConfig.isOpen}
+                onClose={() => setConfirmConfig({ ...confirmConfig, isOpen: false })}
+                onConfirm={confirmConfig.onConfirm}
+                title={confirmConfig.title}
+                message={confirmConfig.message}
+                type={confirmConfig.type}
+            />
         </div>
     );
 };

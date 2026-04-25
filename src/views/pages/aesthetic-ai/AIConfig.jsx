@@ -19,12 +19,16 @@ import {
     Check
 } from 'lucide-react';
 import aestheticAiConfigService from '../../../models/aestheticAiConfigService';
+import ConfirmationModal from '../../../components/ConfirmationModal';
 
 const AIConfig = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [showApiKey, setShowApiKey] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
+
+    // Confirmation State
+    const [confirmConfig, setConfirmConfig] = useState({ isOpen: false, type: 'warning', title: '', message: '', onConfirm: null });
 
     const [config, setConfig] = useState({
         id: '',
@@ -56,12 +60,7 @@ const AIConfig = () => {
         setConfig(prev => ({ ...prev, [key]: value }));
     }, []);
 
-    const handleSubmit = async (e) => {
-        if (e) e.preventDefault();
-        if (!config.id) {
-            alert("No configuration ID found.");
-            return;
-        }
+    const executeSubmit = async () => {
         setSaving(true);
         try {
             const response = await aestheticAiConfigService.update(config.id, {
@@ -81,7 +80,23 @@ const AIConfig = () => {
             console.error(error);
         } finally {
             setSaving(false);
+            setConfirmConfig({ ...confirmConfig, isOpen: false });
         }
+    };
+
+    const handleSubmit = (e) => {
+        if (e) e.preventDefault();
+        if (!config.id) {
+            alert("No configuration ID found.");
+            return;
+        }
+        setConfirmConfig({
+            isOpen: true,
+            type: 'warning',
+            title: 'Deploy AI Matrix',
+            message: 'Are you sure you want to deploy these changes to the neural core? This impacts all AI-driven components.',
+            onConfirm: executeSubmit
+        });
     };
 
     const handleCancel = () => {
@@ -260,6 +275,14 @@ const AIConfig = () => {
                         </div>
                     </div>
                 </div>
+                <ConfirmationModal
+                    isOpen={confirmConfig.isOpen}
+                    onClose={() => setConfirmConfig({ ...confirmConfig, isOpen: false })}
+                    onConfirm={confirmConfig.onConfirm}
+                    title={confirmConfig.title}
+                    message={confirmConfig.message}
+                    type={confirmConfig.type}
+                />
             </div>
         </div>
     );

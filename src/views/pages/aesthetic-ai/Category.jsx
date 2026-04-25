@@ -20,6 +20,7 @@ import {
     Filter
 } from 'lucide-react';
 import categoryService from '../../../models/categoryService';
+import ConfirmationModal from '../../../components/ConfirmationModal';
 
 // Items per page options
 const LIMIT_OPTIONS = [5, 10, 20, 50];
@@ -37,6 +38,10 @@ const Category = () => {
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [adding, setAdding] = useState(false);
     const [updating, setUpdating] = useState(false);
+
+    // Confirmation State
+    const [confirmConfig, setConfirmConfig] = useState({ isOpen: false, type: 'warning', title: '', message: '', onConfirm: null });
+
     const [categoryFormData, setCategoryFormData] = useState({
         name: '',
         beforeImage: '',
@@ -74,13 +79,11 @@ const Category = () => {
         fetchCategories(page, limit);
     }, [fetchCategories, page, limit]);
 
-    const handleAddCategory = async (e) => {
-        e.preventDefault();
+    const executeAddCategory = async () => {
         setAdding(true);
         try {
             const response = await categoryService.addCategory(categoryFormData);
             if (response.success) {
-                alert('Category added successfully');
                 setIsAddModalOpen(false);
                 setCategoryFormData({ name: '', beforeImage: '', afterImage: '', is_active: true, seq_num: 1 });
                 fetchCategories(1, limit); // Refresh list
@@ -89,7 +92,19 @@ const Category = () => {
             alert('Failed to add category: ' + (error.response?.data?.message || error.message));
         } finally {
             setAdding(false);
+            setConfirmConfig({ ...confirmConfig, isOpen: false });
         }
+    };
+
+    const handleAddCategory = (e) => {
+        e.preventDefault();
+        setConfirmConfig({
+            isOpen: true,
+            type: 'success',
+            title: 'Finalize Category Creation',
+            message: 'Are you sure you want to commit this new category to the matrix?',
+            onConfirm: executeAddCategory
+        });
     };
 
     const handleView = async (id) => {
@@ -119,14 +134,12 @@ const Category = () => {
         setIsEditModalOpen(true);
     };
 
-    const handleUpdate = async (e) => {
-        if (e) e.preventDefault();
+    const executeUpdate = async () => {
         setUpdating(true);
         try {
             const { id, ...dataToUpdate } = editFormData;
             const response = await categoryService.patchCategory(id, dataToUpdate);
             if (response.success) {
-                alert('Category updated successfully');
                 setIsEditModalOpen(false);
                 fetchCategories(page, limit);
             }
@@ -134,24 +147,44 @@ const Category = () => {
             alert('Failed to update category: ' + (error.response?.data?.message || error.message));
         } finally {
             setUpdating(false);
+            setConfirmConfig({ ...confirmConfig, isOpen: false });
         }
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to kill this category? This will terminate all associated neural links.')) return;
+    const handleUpdate = (e) => {
+        if (e) e.preventDefault();
+        setConfirmConfig({
+            isOpen: true,
+            type: 'warning',
+            title: 'Confirm Profile Update',
+            message: 'Is this final? This will re-calibrate the neural links for this category.',
+            onConfirm: executeUpdate
+        });
+    };
 
+    const executeDelete = async (id) => {
         setLoading(true);
         try {
             const response = await categoryService.deleteCategory(id);
             if (response.success) {
-                alert('Category deleted successfully');
                 fetchCategories(page, limit);
             }
         } catch (error) {
             alert('Failed to delete category: ' + (error.response?.data?.message || error.message));
         } finally {
             setLoading(false);
+            setConfirmConfig({ ...confirmConfig, isOpen: false });
         }
+    };
+
+    const handleDelete = (id) => {
+        setConfirmConfig({
+            isOpen: true,
+            type: 'danger',
+            title: 'Terminate Category',
+            message: 'Are you sure you want to kill this category? This action is irreversible.',
+            onConfirm: () => executeDelete(id)
+        });
     };
 
     // ── Pagination helpers ───────────────────────────────────────
@@ -746,6 +779,15 @@ const Category = () => {
                     </div>
                 </div>
             )}
+            {/* ── Confirmation Modal ─────────────────────────────────── */}
+            <ConfirmationModal
+                isOpen={confirmConfig.isOpen}
+                onClose={() => setConfirmConfig({ ...confirmConfig, isOpen: false })}
+                onConfirm={confirmConfig.onConfirm}
+                title={confirmConfig.title}
+                message={confirmConfig.message}
+                type={confirmConfig.type}
+            />
         </div>
     );
 };

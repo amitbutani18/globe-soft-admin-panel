@@ -19,6 +19,7 @@ import {
     Calendar,
     Pencil
 } from 'lucide-react';
+import ConfirmationModal from '../../../components/ConfirmationModal';
 import dailyBlogService from '../../../models/dailyBlogService';
 
 const emptyQuestion = () => ({
@@ -47,6 +48,9 @@ const DailyBlogs = () => {
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
     const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, total_pages: 1 });
+
+    // Confirmation State
+    const [confirmConfig, setConfirmConfig] = useState({ isOpen: false, type: 'warning', title: '', message: '', onConfirm: null });
 
     // Form state — API only accepts: title, content, quiz
     const [formData, setFormData] = useState({
@@ -156,8 +160,7 @@ const DailyBlogs = () => {
     const removeEditQuestion = (qi) =>
         setEditFormData(prev => ({ ...prev, quiz: prev.quiz.filter((_, i) => i !== qi) }));
 
-    const handleEditSubmit = async (e) => {
-        e.preventDefault();
+    const executeEditSubmit = async () => {
         setEditLoading(true);
         try {
             const result = await dailyBlogService.updateBlog(editingBlog.id, editFormData);
@@ -173,23 +176,45 @@ const DailyBlogs = () => {
             alert(`Failed to update blog: ${msg}`);
         } finally {
             setEditLoading(false);
+            setConfirmConfig({ ...confirmConfig, isOpen: false });
         }
     };
 
+    const handleEditSubmit = (e) => {
+        e.preventDefault();
+        setConfirmConfig({
+            isOpen: true,
+            type: 'warning',
+            title: 'Finalize Blog Edit',
+            message: 'Are you sure you want to commit these changes to the server?',
+            onConfirm: executeEditSubmit
+        });
+    };
+
     // ── Delete Handler ────────────────────────────────
-    const handleDelete = async (blog) => {
-        if (!window.confirm(`Delete "${blog.title}"? This cannot be undone.`)) return;
+    const executeDelete = async (blog) => {
         try {
             await dailyBlogService.deleteBlog(blog.id);
             setBlogs(prev => prev.filter(b => b.id !== blog.id));
         } catch (error) {
             const msg = error.response?.data?.message || error.message;
             alert(`Failed to delete blog: ${msg}`);
+        } finally {
+            setConfirmConfig({ ...confirmConfig, isOpen: false });
         }
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleDelete = (blog) => {
+        setConfirmConfig({
+            isOpen: true,
+            type: 'danger',
+            title: 'Delete Blog Post',
+            message: `Are you sure you want to delete "${blog.title}"? This cannot be undone.`,
+            onConfirm: () => executeDelete(blog)
+        });
+    };
+
+    const executeSubmit = async () => {
         setLoading(true);
         try {
             const result = await dailyBlogService.addBlog(formData);
@@ -205,7 +230,19 @@ const DailyBlogs = () => {
             alert(`Failed to add blog: ${msg}`);
         } finally {
             setLoading(false);
+            setConfirmConfig({ ...confirmConfig, isOpen: false });
         }
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        setConfirmConfig({
+            isOpen: true,
+            type: 'success',
+            title: 'Create Blog Post',
+            message: 'Is this final? The blog will be published to the network.',
+            onConfirm: executeSubmit
+        });
     };
 
     // ── Pagination helpers ───────────────────────────────────────
@@ -280,17 +317,20 @@ const DailyBlogs = () => {
                     { label: 'Total Blogs', value: pagination.total || blogs.length, icon: BookOpen, color: 'text-green-500', bg: 'bg-green-500/10' },
                     { label: 'With Quizzes', value: blogs.filter(b => b.quiz?.length > 0).length, icon: HelpCircle, color: 'text-indigo-500', bg: 'bg-indigo-500/10' },
                     { label: 'Total Pages', value: pagination.total_pages || 1, icon: FileText, color: 'text-amber-500', bg: 'bg-amber-500/10' },
-                ].map(stat => (
-                    <div key={stat.label} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 flex items-center gap-4 transition-colors duration-300">
-                        <div className={`w-10 h-10 rounded-xl ${stat.bg} flex items-center justify-center flex-shrink-0`}>
-                            <stat.icon className={`w-5 h-5 ${stat.color}`} />
+                ].map(stat => {
+                    const StatIcon = stat.icon;
+                    return (
+                        <div key={stat.label} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 flex items-center gap-4 transition-colors duration-300">
+                            <div className={`w-10 h-10 rounded-xl ${stat.bg} flex items-center justify-center flex-shrink-0`}>
+                                <StatIcon className={`w-5 h-5 ${stat.color}`} />
+                            </div>
+                            <div className="min-w-0">
+                                <p className="text-2xl font-bold">{stat.value}</p>
+                                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest truncate">{stat.label}</p>
+                            </div>
                         </div>
-                        <div className="min-w-0">
-                            <p className="text-2xl font-bold">{stat.value}</p>
-                            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest truncate">{stat.label}</p>
-                        </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
 
             {/* ── Table Card ────────────────────────────────────────── */}
@@ -801,6 +841,15 @@ const DailyBlogs = () => {
                     </div>
                 </div>
             )}
+            {/* ── Confirmation Modal ─────────────────────────────────── */}
+            <ConfirmationModal
+                isOpen={confirmConfig.isOpen}
+                onClose={() => setConfirmConfig({ ...confirmConfig, isOpen: false })}
+                onConfirm={confirmConfig.onConfirm}
+                title={confirmConfig.title}
+                message={confirmConfig.message}
+                type={confirmConfig.type}
+            />
         </div>
     );
 };

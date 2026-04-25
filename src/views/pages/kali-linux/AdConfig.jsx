@@ -25,6 +25,7 @@ import {
     Trash2
 } from 'lucide-react';
 import adConfigService from '../../../models/adConfigService';
+import ConfirmationModal from '../../../components/ConfirmationModal';
 
 const AdConfig = () => {
     const [configId, setConfigId] = useState(null);
@@ -53,7 +54,9 @@ const AdConfig = () => {
     const [showApiKey, setShowApiKey] = useState(false);
     const [customFields, setCustomFields] = useState([]);
     const [activeSection, setActiveSection] = useState('general');
-    const [deleteModal, setDeleteModal] = useState({ isOpen: false, type: null, index: null });
+
+    // Confirmation State
+    const [confirmConfig, setConfirmConfig] = useState({ isOpen: false, type: 'warning', title: '', message: '', onConfirm: null });
 
     // ── Fetch Initial Data ───────────────────────────────────────────────────
     const fetchConfig = useCallback(async () => {
@@ -98,8 +101,6 @@ const AdConfig = () => {
 
     // ── Controls ────────────────────────────────────────────────────────────
     const handleCreateNew = () => {
-        // preserve existing form data as base
-        // setConfigId(null); // Keep or clear ID? Usually clear for "New", but user said "remain all data"
         setIsCreating(true);
         setIsEditing(true);
         setActiveSection('advanced');
@@ -131,47 +132,44 @@ const AdConfig = () => {
     };
 
     const openDeleteModal = (type, index = null) => {
-        setDeleteModal({ isOpen: true, type, index });
-    };
-
-    const handleConfirmDelete = async () => {
-        const { type, index } = deleteModal;
-        if (type === 'variable') {
-            setCustomFields(prev => prev.filter((_, i) => i !== index));
-        } else if (type === 'core') {
-            // "Deleting" a core variable resets it to empty/0/false
-            const booleanFields = ['showOpenAdInSplash_android', 'showOpenAdInSplash_ios', 'native_ads_enabled', 'showreview'];
-            let defaultValue = '';
-            if (booleanFields.includes(index)) {
-                defaultValue = false;
-            } else if (index === 'aiChatFreeCount' || index === 'click') {
-                defaultValue = 0;
+        setConfirmConfig({
+            isOpen: true,
+            type: 'danger',
+            title: 'Confirm Variable Deletion',
+            message: `Are you sure you want to remove the variable at index [${index}]? This action persists after saving.`,
+            onConfirm: () => {
+                if (type === 'variable') {
+                    setCustomFields(prev => prev.filter((_, i) => i !== index));
+                } else if (type === 'core') {
+                    const booleanFields = ['showOpenAdInSplash_android', 'showOpenAdInSplash_ios', 'native_ads_enabled', 'showreview'];
+                    let defaultValue = '';
+                    if (booleanFields.includes(index)) {
+                        defaultValue = false;
+                    } else if (index === 'aiChatFreeCount' || index === 'click') {
+                        defaultValue = 0;
+                    }
+                    setForm(prev => ({ ...prev, [index]: defaultValue }));
+                }
+                setConfirmConfig({ ...confirmConfig, isOpen: false });
             }
-            setForm(prev => ({ ...prev, [index]: defaultValue }));
-        } else if (type === 'config') {
-            console.log('Global deletion (pending new API)');
-            alert('Global deletion functionality is temporarily disabled. Please wait for the new API implementation.');
-        }
-        setDeleteModal({ isOpen: false, type: null, index: null });
+        });
     };
 
     const handleFieldChange = (index, field, value) => {
         setCustomFields(prev => prev.map((item, i) => i === index ? { ...item, [field]: value } : item));
     };
 
-    const handleSave = async (e) => {
-        if (e) e.preventDefault();
+    const executeSave = async () => {
         setSaving(true);
         setSavedOn(null);
         try {
-            // Filter out empty custom fields
             const activeCustomFields = customFields.filter(f => f.key.trim() !== '');
             const payload = { ...form, customFields: activeCustomFields };
 
             if (isCreating) {
-                console.log('Creation payload (pending new API):', payload);
                 alert('Creation functionality is temporarily disabled. Please wait for the new API implementation.');
                 setSaving(false);
+                setConfirmConfig({ ...confirmConfig, isOpen: false });
                 return;
             }
 
@@ -184,7 +182,19 @@ const AdConfig = () => {
             alert(`Update failed: ${err?.message}`);
         } finally {
             setSaving(false);
+            setConfirmConfig({ ...confirmConfig, isOpen: false });
         }
+    };
+
+    const handleSave = (e) => {
+        if (e) e.preventDefault();
+        setConfirmConfig({
+            isOpen: true,
+            type: 'warning',
+            title: 'Persist System Parameters',
+            message: 'Are you sure you want to deploy these system configurations to the live environment? This will affect all core modules including AI Thresholds and Ad Frequency.',
+            onConfirm: executeSave
+        });
     };
 
     const handleChange = (key, value) => {
@@ -281,44 +291,6 @@ const AdConfig = () => {
             </div>
         </div>
     );
-
-    const ConfirmModal = () => {
-        if (!deleteModal.isOpen) return null;
-
-        return (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                <div className="absolute inset-0 bg-zinc-950/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setDeleteModal({ isOpen: false, type: null, index: null })} />
-                <div className="relative w-full max-w-md bg-white dark:bg-zinc-900 rounded-[2.5rem] p-8 shadow-2xl animate-in zoom-in-95 duration-200 border border-zinc-200 dark:border-zinc-800">
-                    <div className="flex flex-col items-center text-center gap-6">
-                        <div className="p-4 rounded-full bg-amber-500/10 text-amber-500">
-                            <Trash2 className="w-8 h-8" />
-                        </div>
-                        <div className="space-y-2">
-                            <h3 className="text-xl font-black text-zinc-900 dark:text-white uppercase tracking-tight">Confirm Deletion</h3>
-                            <p className="text-sm text-zinc-500 font-medium font-mono text-amber-600/80 uppercase tracking-tighter">Action: system.deleteVariable(index:{deleteModal.index})</p>
-                            <p className="text-sm text-zinc-500 font-medium">
-                                Are you sure you want to remove this variable? This will remove it from the local state until you persist changes.
-                            </p>
-                        </div>
-                        <div className="flex items-center gap-3 w-full">
-                            <button
-                                onClick={() => setDeleteModal({ isOpen: false, type: null, index: null })}
-                                className="flex-1 px-6 py-3 rounded-2xl font-bold text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all text-xs uppercase tracking-widest"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleConfirmDelete}
-                                className="flex-1 px-6 py-3 rounded-2xl font-bold text-white bg-zinc-900 dark:bg-white dark:text-zinc-900 shadow-lg shadow-zinc-900/20 transition-all text-xs uppercase tracking-widest"
-                            >
-                                Confirm Delete
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    };
 
     if (loading) {
         return (
@@ -538,7 +510,14 @@ const AdConfig = () => {
                 </div>
             </div>
 
-            <ConfirmModal />
+            <ConfirmationModal
+                isOpen={confirmConfig.isOpen}
+                onClose={() => setConfirmConfig({ ...confirmConfig, isOpen: false })}
+                onConfirm={confirmConfig.onConfirm}
+                title={confirmConfig.title}
+                message={confirmConfig.message}
+                type={confirmConfig.type}
+            />
 
             {/* Notification */}
             {savedOn && !isEditing && (
@@ -552,4 +531,3 @@ const AdConfig = () => {
 };
 
 export default AdConfig;
-

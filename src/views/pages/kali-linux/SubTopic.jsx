@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import subTopicService from '../../../models/subTopicService';
 import topicService from '../../../models/topicService';
+import ConfirmationModal from '../../../components/ConfirmationModal';
 
 const LIMIT_OPTIONS = [5, 10, 20, 50];
 
@@ -38,6 +39,9 @@ const SubTopic = () => {
 
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
+
+    // Confirmation State
+    const [confirmConfig, setConfirmConfig] = useState({ isOpen: false, type: 'warning', title: '', message: '', onConfirm: null });
 
     const [formData, setFormData] = useState({
         id: '',
@@ -104,8 +108,7 @@ const SubTopic = () => {
         setEditFormData(prev => ({ ...prev, [name]: name === 'order' ? parseInt(value) || 0 : value }));
     };
 
-    const handleEditSubmit = async (e) => {
-        e.preventDefault();
+    const executeEditSubmit = async () => {
         setEditLoading(true);
         try {
             await subTopicService.updateSubTopic(editingSubTopic.id, editFormData);
@@ -116,21 +119,43 @@ const SubTopic = () => {
             alert(`Update failed: ${error.message}`);
         } finally {
             setEditLoading(false);
+            setConfirmConfig({ ...confirmConfig, isOpen: false });
         }
     };
 
-    const handleDelete = async (st) => {
-        if (!window.confirm(`Delete "${st.title || st.name}"?`)) return;
+    const handleEditSubmit = (e) => {
+        if (e) e.preventDefault();
+        setConfirmConfig({
+            isOpen: true,
+            type: 'warning',
+            title: 'Commit Node Modification',
+            message: 'Are you sure you want to update this sub-matrix entry? This recalibrates the specialized learning path.',
+            onConfirm: executeEditSubmit
+        });
+    };
+
+    const executeDelete = async (st) => {
         try {
             await subTopicService.deleteSubTopic(st.id);
             setSubTopics(prev => prev.filter(item => item.id !== st.id));
         } catch (error) {
             alert(`Delete failed: ${error.message}`);
+        } finally {
+            setConfirmConfig({ ...confirmConfig, isOpen: false });
         }
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleDelete = (st) => {
+        setConfirmConfig({
+            isOpen: true,
+            type: 'danger',
+            title: 'Drop Taxonomic Node',
+            message: `Are you sure you want to drop "${st.title || st.name}"? This action is irreversible and terminates the specialized branch.`,
+            onConfirm: () => executeDelete(st)
+        });
+    };
+
+    const executeCreate = async () => {
         setLoading(true);
         try {
             await subTopicService.createSubTopic(formData);
@@ -141,7 +166,19 @@ const SubTopic = () => {
             alert(`Deployment failed: ${error.message}`);
         } finally {
             setLoading(false);
+            setConfirmConfig({ ...confirmConfig, isOpen: false });
         }
+    };
+
+    const handleSubmit = (e) => {
+        if (e) e.preventDefault();
+        setConfirmConfig({
+            isOpen: true,
+            type: 'success',
+            title: 'Finalize Registry Entry',
+            message: 'Are you sure you want to initialize this sub-matrix node? This will deploy the entry to the production registry.',
+            onConfirm: executeCreate
+        });
     };
 
     const goToPage = (p) => {
@@ -460,6 +497,14 @@ const SubTopic = () => {
                     </div>
                 </div>
             )}
+            <ConfirmationModal
+                isOpen={confirmConfig.isOpen}
+                onClose={() => setConfirmConfig({ ...confirmConfig, isOpen: false })}
+                onConfirm={confirmConfig.onConfirm}
+                title={confirmConfig.title}
+                message={confirmConfig.message}
+                type={confirmConfig.type}
+            />
         </div>
     );
 };

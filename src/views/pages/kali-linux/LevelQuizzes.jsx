@@ -21,6 +21,7 @@ import {
     ToggleRight,
     ListTree
 } from 'lucide-react';
+import ConfirmationModal from '../../../components/ConfirmationModal';
 import levelQuizService from '../../../models/levelQuizService';
 
 const LIMIT_OPTIONS = [5, 10, 20, 50];
@@ -30,6 +31,15 @@ const LevelQuizzes = () => {
     const [levels, setLevels] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+
+    // Confirmation State
+    const [confirmConfig, setConfirmConfig] = useState({
+        isOpen: false,
+        type: 'warning',
+        title: '',
+        message: '',
+        onConfirm: null
+    });
 
     // Modal States
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
@@ -130,8 +140,7 @@ const LevelQuizzes = () => {
         }));
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const executeSubmit = async () => {
         setFormLoading(true);
         try {
             const res = await levelQuizService.createLevel(formData);
@@ -143,11 +152,22 @@ const LevelQuizzes = () => {
             alert(`Failed to add level: ${error.message}`);
         } finally {
             setFormLoading(false);
+            setConfirmConfig(prev => ({ ...prev, isOpen: false }));
         }
     };
 
-    const handleEditSubmit = async (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
+        setConfirmConfig({
+            isOpen: true,
+            type: 'success',
+            title: 'Confirm Level Initialization',
+            message: 'Are you sure you want to initialize this level progression node?',
+            onConfirm: executeSubmit
+        });
+    };
+
+    const executeEditSubmit = async () => {
         setFormLoading(true);
         try {
             const res = await levelQuizService.updateLevel(editingLevel.id, editFormData);
@@ -159,18 +179,41 @@ const LevelQuizzes = () => {
             alert(`Failed to update level: ${error.message}`);
         } finally {
             setFormLoading(false);
+            setConfirmConfig(prev => ({ ...prev, isOpen: false }));
         }
     };
 
-    const handleDelete = async (level) => {
-        if (!window.confirm(`Delete level: "${level.level}"?`)) return;
+    const handleEditSubmit = (e) => {
+        e.preventDefault();
+        setConfirmConfig({
+            isOpen: true,
+            type: 'warning',
+            title: 'Confirm Changes',
+            message: 'Are you sure you want to update this level manifestation?',
+            onConfirm: executeEditSubmit
+        });
+    };
+
+    const executeDelete = async (level) => {
         try {
             const res = await levelQuizService.deleteLevel(level.id);
             fetchData();
             if (res.message) alert(res.message);
         } catch (error) {
             alert(`Failed to delete: ${error.message}`);
+        } finally {
+            setConfirmConfig(prev => ({ ...prev, isOpen: false }));
         }
+    };
+
+    const handleDelete = (level) => {
+        setConfirmConfig({
+            isOpen: true,
+            type: 'danger',
+            title: 'Terminate Node',
+            message: `Are you sure you want to delete "${level.level}"? This action cannot be undone.`,
+            onConfirm: () => executeDelete(level)
+        });
     };
 
     // Modal Triggers
@@ -487,6 +530,15 @@ const LevelQuizzes = () => {
                     </div>
                 </div>
             )}
+            {/* Confirmation Matrix */}
+            <ConfirmationModal
+                isOpen={confirmConfig.isOpen}
+                type={confirmConfig.type}
+                title={confirmConfig.title}
+                message={confirmConfig.message}
+                onConfirm={confirmConfig.onConfirm}
+                onCancel={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))}
+            />
         </div>
     );
 };

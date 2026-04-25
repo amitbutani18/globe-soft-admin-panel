@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Sparkles, Search, Plus, Filter, LayoutGrid, List } from 'lucide-react';
+import ConfirmationModal from '../../../components/ConfirmationModal';
 
 const Prompts = () => {
     return (

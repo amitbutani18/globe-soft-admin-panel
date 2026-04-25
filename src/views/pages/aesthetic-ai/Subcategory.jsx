@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import subcategoryService from '../../../models/subcategoryService';
 import categoryService from '../../../models/categoryService';
+import ConfirmationModal from '../../../components/ConfirmationModal';
 
 // Items per page options
 const LIMIT_OPTIONS = [5, 10, 20, 50];
@@ -61,6 +62,9 @@ const Subcategory = () => {
     const [limit, setLimit] = useState(10);
     const [pagination, setPagination] = useState({ current_page: 1, limit: 10, total_items: 0, total_pages: 1 });
 
+    // Confirmation State
+    const [confirmConfig, setConfirmConfig] = useState({ isOpen: false, type: 'warning', title: '', message: '', onConfirm: null });
+
     const fetchSubcategories = useCallback(async (p = page, l = limit) => {
         setLoading(true);
         try {
@@ -95,13 +99,11 @@ const Subcategory = () => {
         fetchDropdownCategories();
     }, [fetchSubcategories, page, limit]);
 
-    const handleAddSubcategory = async (e) => {
-        e.preventDefault();
+    const executeAddSubcategory = async () => {
         setAdding(true);
         try {
             const response = await subcategoryService.addSubcategory(subFormData);
             if (response.success) {
-                alert('Sub-Category added successfully');
                 setIsAddModalOpen(false);
                 setSubFormData({ CategoryId: '', name: '', refImage: '', prompt: '', is_active: true, seq_num: 1 });
                 fetchSubcategories(1, limit);
@@ -110,24 +112,44 @@ const Subcategory = () => {
             alert('Failed to add sub-category: ' + (error.response?.data?.message || error.message));
         } finally {
             setAdding(false);
+            setConfirmConfig({ ...confirmConfig, isOpen: false });
         }
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to drop this neural node? This action cannot be undone.')) return;
+    const handleAddSubcategory = (e) => {
+        e.preventDefault();
+        setConfirmConfig({
+            isOpen: true,
+            type: 'success',
+            title: 'Initialize Neural Node',
+            message: 'Are you sure you want to deploy this sub-matrix node to the network?',
+            onConfirm: executeAddSubcategory
+        });
+    };
 
+    const executeDelete = async (id) => {
         setLoading(true);
         try {
             const response = await subcategoryService.deleteSubcategory(id);
             if (response.success) {
-                alert('Sub-Category deleted successfully');
                 fetchSubcategories(page, limit);
             }
         } catch (error) {
             alert('Failed to delete sub-category: ' + (error.response?.data?.message || error.message));
         } finally {
             setLoading(false);
+            setConfirmConfig({ ...confirmConfig, isOpen: false });
         }
+    };
+
+    const handleDelete = (id) => {
+        setConfirmConfig({
+            isOpen: true,
+            type: 'danger',
+            title: 'Drop Neural Node',
+            message: 'Are you sure you want to drop this node? This action cannot be undone.',
+            onConfirm: () => executeDelete(id)
+        });
     };
 
     const handleEdit = (sub) => {
@@ -143,14 +165,12 @@ const Subcategory = () => {
         setIsEditModalOpen(true);
     };
 
-    const handleUpdate = async (e) => {
-        if (e) e.preventDefault();
+    const executeUpdate = async () => {
         setUpdating(true);
         try {
             const { id, ...dataToUpdate } = editFormData;
             const response = await subcategoryService.patchSubcategory(id, dataToUpdate);
             if (response.success) {
-                alert('Sub-Category updated successfully');
                 setIsEditModalOpen(false);
                 fetchSubcategories(page, limit);
             }
@@ -158,7 +178,19 @@ const Subcategory = () => {
             alert('Failed to update sub-category: ' + (error.response?.data?.message || error.message));
         } finally {
             setUpdating(false);
+            setConfirmConfig({ ...confirmConfig, isOpen: false });
         }
+    };
+
+    const handleUpdate = (e) => {
+        if (e) e.preventDefault();
+        setConfirmConfig({
+            isOpen: true,
+            type: 'warning',
+            title: 'Update Neural Params',
+            message: 'Is this final? Modification will affect generative outputs immediately.',
+            onConfirm: executeUpdate
+        });
     };
 
     const handleView = async (id) => {
@@ -821,6 +853,15 @@ const Subcategory = () => {
                     </div>
                 </div>
             )}
+            {/* ── Confirmation Modal ─────────────────────────────────── */}
+            <ConfirmationModal
+                isOpen={confirmConfig.isOpen}
+                onClose={() => setConfirmConfig({ ...confirmConfig, isOpen: false })}
+                onConfirm={confirmConfig.onConfirm}
+                title={confirmConfig.title}
+                message={confirmConfig.message}
+                type={confirmConfig.type}
+            />
         </div>
     );
 };
