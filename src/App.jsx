@@ -25,8 +25,7 @@ import LevelQuizzes from './views/pages/kali-linux/LevelQuizzes';
 
 import StoryLearning from './views/pages/kali-linux/StoryLearning';
 import SubTopicQuiz from './views/pages/kali-linux/SubTopicQuiz';
-import SubTopic from './views/pages/kali-linux/SubTopic';
-import Topics from './views/pages/kali-linux/Topics';
+import ModuleExplorer from './views/pages/kali-linux/ModuleExplorer';
 import UserLoginConfig from './views/pages/kali-linux/UserLoginConfig';
 import Users from './views/pages/kali-linux/Users';
 import TranslatedContents from './views/pages/kali-linux/TranslatedContents';
@@ -70,8 +69,7 @@ function App() {
 
                     <Route path="story-learning" element={<StoryLearning />} />
                     <Route path="sub-topic-quiz" element={<SubTopicQuiz />} />
-                    <Route path="sub-topic" element={<SubTopic />} />
-                    <Route path="topics" element={<Topics />} />
+                    <Route path="kali-modules" element={<ModuleExplorer />} />
                     <Route path="user-login-config" element={<UserLoginConfig />} />
                     <Route path="kali-users" element={<Users />} />
                     <Route path="translated-contents" element={<TranslatedContents />} />

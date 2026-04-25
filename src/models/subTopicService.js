@@ -9,13 +9,30 @@ const subTopicService = {
     getSubTopics: async () => {
         try {
             const response = await axios.get(BASE_URL);
-            // Assuming the production API returns { data: [...], success: true }
             return {
                 subTopics: response.data?.data || [],
                 success: response.data?.success || false
             };
         } catch (error) {
             console.error('Error fetching sub-topics:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Fetch sub-topics filtered by topic ID
+     */
+    getSubTopicsByTopicId: async (topicId) => {
+        try {
+            const response = await axios.get(BASE_URL, {
+                params: { topic_id: topicId }
+            });
+            return {
+                subTopics: response.data?.data || [],
+                success: response.data?.success || false
+            };
+        } catch (error) {
+            console.error(`Error fetching sub-topics for topic ${topicId}:`, error);
             throw error;
         }
     },
@@ -68,6 +85,23 @@ const subTopicService = {
             return response.data;
         } catch (error) {
             console.error('Termination failure:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Fetch the detailed content for a sub-topic
+     * GET /api/subtopics/{subTopicId}/content
+     */
+    getSubTopicContent: async (subTopicId) => {
+        try {
+            const response = await axios.get(`${BASE_URL}/${subTopicId}/content`);
+            return {
+                content: response.data?.data || null,
+                success: response.data?.success || false
+            };
+        } catch (error) {
+            console.error(`Error fetching content for subtopic ${subTopicId}:`, error);
             throw error;
         }
     }

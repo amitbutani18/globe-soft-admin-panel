@@ -41,7 +41,13 @@ const Dashboard = () => {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">Welcome back, Admin</h1>
-                    <p className="text-zinc-500 dark:text-zinc-400 mt-1">Here is what's happening with <span className="text-indigo-600 dark:text-indigo-400 font-bold">{activeApp.replace('_', ' ')}</span> today.</p>
+                    <p className="text-zinc-500 dark:text-zinc-400 mt-1">
+                        Here is what's happening with {activeApp && activeApp !== 'dashboard' ? (
+                            <span className="text-indigo-600 dark:text-indigo-400 font-bold capitalize">{activeApp.replace('_', ' ')}</span>
+                        ) : (
+                            <span className="text-zinc-400 font-bold italic">Global Analytics</span>
+                        )} today.
+                    </p>
                 </div>
                 <div className="flex items-center gap-3">
                     <button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs font-bold transition-all hover:bg-zinc-50 dark:hover:bg-zinc-800/80">
@@ -93,7 +99,7 @@ const Dashboard = () => {
                             <div className="mx-auto w-16 h-16 rounded-full bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
                                 <TrendingUp className="w-8 h-8 text-indigo-500" />
                             </div>
-                            <p className="text-sm font-bold text-zinc-500">Charts for <span className="text-indigo-500">{activeApp}</span> will appear here</p>
+                            <p className="text-sm font-bold text-zinc-500">Charts for <span className="text-indigo-500">{activeApp && activeApp !== 'dashboard' ? activeApp.replace('_', ' ') : 'All Modules'}</span> will appear here</p>
                             <p className="text-[10px] text-zinc-400 dark:text-zinc-600 uppercase tracking-widest">Waiting for API Integration...</p>
                         </div>
                         <div className="absolute inset-x-8 bottom-8 top-24 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-3xl" />
@@ -111,7 +117,7 @@ const Dashboard = () => {
                                 <div className="mt-1.5 w-2 h-2 rounded-full bg-indigo-600 dark:bg-indigo-500 shadow-lg shadow-indigo-500/20 group-hover:scale-125 transition-transform" />
                                 <div className="space-y-1">
                                     <p className="text-xs font-bold leading-relaxed">
-                                        {item.action} <span className="text-indigo-600 dark:text-indigo-500">{item.app}</span>
+                                        {item.action} <span className="text-indigo-600 dark:text-indigo-500">{activeApp && activeApp !== 'dashboard' ? activeApp.replace('_', ' ') : 'System Registry'}</span>
                                     </p>
                                     <div className="flex items-center gap-1.5 text-[10px] text-zinc-400 dark:text-zinc-500 font-bold uppercase tracking-tighter">
                                         <Clock className="w-3 h-3" />

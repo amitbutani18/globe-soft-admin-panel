@@ -86,18 +86,9 @@ const apps = [
         accent: 'green',
         subItems: [
             { name: 'Daily Blogs', path: '/daily-blogs', icon: <BookOpen className="w-4 h-4" /> },
-            {
-                name: 'Topics',
-                path: '/topics',
-                icon: <FolderOpen className="w-4 h-4" />,
-                children: [
-                    { name: 'Topics', path: '/topics', icon: <FolderOpen className="w-4 h-4" /> },
-                    { name: 'Sub Topic', path: '/sub-topic', icon: <Layers className="w-4 h-4" /> },
-                    { name: 'Sub Topic Quiz', path: '/sub-topic-quiz', icon: <HelpCircle className="w-4 h-4" /> },
-                    { name: 'Content', path: '/kali-content', icon: <FileText className="w-4 h-4" /> },
-                ]
-            },
+            { name: 'Module Explorer', path: '/kali-modules', icon: <FolderOpen className="w-4 h-4" /> },
             { name: 'Level Quizzes', path: '/level-quizzes', icon: <BarChart2 className="w-4 h-4" /> },
+
             { name: 'Flashed Quiz', path: '/flashed-quiz', icon: <Zap className="w-4 h-4" /> },
             { name: 'Story Learning', path: '/story-learning', icon: <BookMarked className="w-4 h-4" /> },
             {
@@ -245,7 +236,7 @@ const NestedNavItem = ({ sub, location }) => {
 };
 
 const AdminLayout = () => {
-    const { theme, toggleTheme } = useAppStore();
+    const { theme, toggleTheme, setActiveApp } = useAppStore();
     const location = useLocation();
     const [isSidebarOpen, setSidebarOpen] = useState(true);
 
@@ -276,10 +267,15 @@ const AdminLayout = () => {
             return isActive;
         });
 
-        const result = matched?.id ?? 'aesthetic_ai';
+        const result = matched?.id ?? 'dashboard';
         console.log('Final active app:', result);
         return result;
     }, [location.pathname]);
+
+    // Keep the global store in sync with the current path
+    React.useEffect(() => {
+        setActiveApp(activeApp);
+    }, [activeApp, setActiveApp]);
 
     const [expandedApp, setExpandedApp] = useState(activeApp);
 

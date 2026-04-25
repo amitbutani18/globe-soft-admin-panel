@@ -77,6 +77,24 @@ const topicService = {
             console.error('Error deleting topic:', error);
             throw error;
         }
+    },
+
+    /**
+     * Fetch subtopics for a specific topic
+     * GET /api/topics/{topicId}/subtopics
+     */
+    getTopicSubTopics: async (topicId) => {
+        try {
+            const response = await axios.get(`${BASE_URL}/topics/${topicId}/subtopics`);
+            return {
+                topic: response.data?.data?.topic || null,
+                subTopics: response.data?.data?.subTopics || [],
+                success: response.data?.success || false
+            };
+        } catch (error) {
+            console.error(`Error fetching subtopics for topic ${topicId}:`, error);
+            throw error;
+        }
     }
 };
 
