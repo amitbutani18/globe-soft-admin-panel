@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import topicService from '../../../models/topicService';
 import subTopicService from '../../../models/subTopicService';
+import ConfirmationModal from '../../../components/ConfirmationModal';
 
 const ModuleExplorer = () => {
     // Navigation State: 0 = Topics, 1 = SubTopics, 2 = Content
@@ -42,6 +43,42 @@ const ModuleExplorer = () => {
     const [loading, setLoading] = useState(false);
     const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
     const [searchQuery, setSearchQuery] = useState('');
+    const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+    const [viewObject, setViewObject] = useState(null);
+    const [viewObjectType, setViewObjectType] = useState('');
+    const [detailLoading, setDetailLoading] = useState(false);
+
+    // Edit State
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editingTopic, setEditingTopic] = useState(null);
+    const [editFormData, setEditFormData] = useState({
+        name: '',
+        description: '',
+        icon: '',
+        nativeAdIndex: 0,
+        quizTopicName: ''
+    });
+    const [editLoading, setEditLoading] = useState(false);
+
+    // Edit Subtopic State
+    const [isEditSubTopicModalOpen, setIsEditSubTopicModalOpen] = useState(false);
+    const [editingSubTopic, setEditingSubTopic] = useState(null);
+    const [editSubTopicFormData, setEditSubTopicFormData] = useState({
+        title: '',
+        description: '',
+        screenKey: '',
+        icon: '',
+        order: 0
+    });
+
+    // Confirmation State
+    const [confirmConfig, setConfirmConfig] = useState({
+        isOpen: false,
+        type: 'warning',
+        title: '',
+        message: '',
+        onConfirm: null
+    });
 
     // Fetch Topics on Mount
     useEffect(() => {
@@ -105,6 +142,122 @@ const ModuleExplorer = () => {
             setViewLevel(viewLevel - 1);
             if (viewLevel === 1) setSelectedTopic(null);
             if (viewLevel === 2) setSelectedSubTopic(null);
+        }
+    };
+
+    const handleViewDetail = async (e, obj, type) => {
+        e.stopPropagation();
+        setViewObject(obj);
+        setViewObjectType(type);
+        setIsViewModalOpen(true);
+
+        // Fetch detailed data for Topics
+        if (type === 'Topic') {
+            setDetailLoading(true);
+            try {
+                const data = await topicService.getTopicById(obj.id);
+                if (data) setViewObject(data);
+            } catch (error) {
+                console.error('Failed to fetch detailed topic:', error);
+            } finally {
+                setDetailLoading(false);
+            }
+        }
+
+        // Fetch detailed data for Subtopics
+        if (type === 'Subtopic') {
+            setDetailLoading(true);
+            try {
+                const data = await subTopicService.getSubTopicById(obj.id);
+                if (data) setViewObject(data);
+            } catch (error) {
+                console.error('Failed to fetch detailed subtopic:', error);
+            } finally {
+                setDetailLoading(false);
+            }
+        }
+    };
+
+    const handleOpenEditTopic = (e, topic) => {
+        e.stopPropagation();
+        setEditingTopic(topic);
+        setEditFormData({
+            name: topic.name || '',
+            description: topic.description || '',
+            icon: topic.icon || '',
+            nativeAdIndex: topic.nativeAdIndex || 0,
+            quizTopicName: topic.quizTopicName || ''
+        });
+        setIsEditModalOpen(true);
+    };
+
+    const handleEditTopicSubmit = (e) => {
+        e.preventDefault();
+        setConfirmConfig({
+            isOpen: true,
+            type: 'warning',
+            title: 'Confirm Node Update',
+            message: `Are you sure you want to synchronize the changes for "${editingTopic.name}"? This will update the production node manifest.`,
+            onConfirm: executeEditTopicSubmit
+        });
+    };
+
+    const executeEditTopicSubmit = async () => {
+        setEditLoading(true);
+        try {
+            const res = await topicService.updateTopic(editingTopic.id, editFormData);
+            if (res.success) {
+                fetchTopics();
+                setIsEditModalOpen(false);
+                setEditingTopic(null);
+            }
+        } catch (error) {
+            console.error('Failed to update topic:', error);
+        } finally {
+            setEditLoading(false);
+            setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+        }
+    };
+
+    const handleOpenEditSubTopic = (e, st) => {
+        e.stopPropagation();
+        setEditingSubTopic(st);
+        setEditSubTopicFormData({
+            title: st.title || st.name || '',
+            description: st.description || '',
+            screenKey: st.screenKey || '',
+            icon: st.icon || '',
+            order: st.order || 0
+        });
+        setIsEditSubTopicModalOpen(true);
+    };
+
+    const handleEditSubTopicSubmit = (e) => {
+        e.preventDefault();
+        setConfirmConfig({
+            isOpen: true,
+            type: 'warning',
+            title: 'Confirm Sub-Node Update',
+            message: `Are you sure you want to synchronize the changes for "${editingSubTopic.title || editingSubTopic.name}"? This will update the production sub-matrix node.`,
+            onConfirm: executeEditSubTopicSubmit
+        });
+    };
+
+    const executeEditSubTopicSubmit = async () => {
+        setEditLoading(true);
+        try {
+            const res = await subTopicService.updateSubTopic(editingSubTopic.id, editSubTopicFormData);
+            if (res.success) {
+                // Refresh subtopics list for the current topic
+                handleTopicSelect(selectedTopic);
+                setIsEditSubTopicModalOpen(false);
+                setEditingSubTopic(null);
+            }
+        } catch (error) {
+            console.error('Failed to update subtopic:', error);
+        } finally {
+            setEditLoading(false);
+            setConfirmConfig(prev => ({ ...prev, isOpen: false }));
         }
     };
 
@@ -197,7 +350,8 @@ const ModuleExplorer = () => {
                             >
                                 <div className="flex justify-end items-start mb-6">
                                     <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity ml-auto">
-                                        <button className="p-2.5 bg-zinc-50 dark:bg-zinc-800 rounded-xl hover:text-amber-500 transition-colors shadow-sm" onClick={(e) => { e.stopPropagation(); }}><Pencil className="w-4 h-4" /></button>
+                                        <button className="p-2.5 bg-zinc-50 dark:bg-zinc-800 rounded-xl hover:text-blue-500 transition-colors shadow-sm" onClick={(e) => handleViewDetail(e, topic, 'Topic')}><Eye className="w-4 h-4" /></button>
+                                        <button className="p-2.5 bg-zinc-50 dark:bg-zinc-800 rounded-xl hover:text-amber-500 transition-colors shadow-sm" onClick={(e) => handleOpenEditTopic(e, topic)}><Pencil className="w-4 h-4" /></button>
                                         <button className="p-2.5 bg-zinc-50 dark:bg-zinc-800 rounded-xl hover:text-rose-500 transition-colors shadow-sm" onClick={(e) => { e.stopPropagation(); }}><Trash2 className="w-4 h-4" /></button>
                                     </div>
                                 </div>
@@ -246,7 +400,8 @@ const ModuleExplorer = () => {
                                         <span className="px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-[8px] font-black text-zinc-500 uppercase tracking-widest border border-zinc-200 dark:border-zinc-700">Production Node</span>
                                     </div>
                                     <div className="w-32 flex items-center justify-end gap-1.5 px-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button className="p-1.5 hover:text-amber-500 transition-colors" onClick={(e) => e.stopPropagation()}><Pencil className="w-3.5 h-3.5" /></button>
+                                        <button className="p-1.5 hover:text-blue-500 transition-colors" onClick={(e) => handleViewDetail(e, topic, 'Topic')}><Eye className="w-3.5 h-3.5" /></button>
+                                        <button className="p-1.5 hover:text-amber-500 transition-colors" onClick={(e) => handleOpenEditTopic(e, topic)}><Pencil className="w-3.5 h-3.5" /></button>
                                         <button className="p-1.5 hover:text-rose-500 transition-colors" onClick={(e) => e.stopPropagation()}><Trash2 className="w-3.5 h-3.5" /></button>
                                         <ChevronRight className="w-4 h-4 text-zinc-300 group-hover:translate-x-1 transition-transform ml-1" />
                                     </div>
@@ -278,7 +433,8 @@ const ModuleExplorer = () => {
                             >
                                 <div className="flex justify-between items-start mb-6">
                                     <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity ml-auto">
-                                        <button className="p-2.5 bg-zinc-50 dark:bg-zinc-800 rounded-xl hover:text-amber-500 transition-colors shadow-sm" onClick={(e) => { e.stopPropagation(); }}><Pencil className="w-4 h-4" /></button>
+                                        <button className="p-2.5 bg-zinc-50 dark:bg-zinc-800 rounded-xl hover:text-blue-500 transition-colors shadow-sm" onClick={(e) => handleViewDetail(e, st, 'Subtopic')}><Eye className="w-4 h-4" /></button>
+                                        <button className="p-2.5 bg-zinc-50 dark:bg-zinc-800 rounded-xl hover:text-amber-500 transition-colors shadow-sm" onClick={(e) => handleOpenEditSubTopic(e, st)}><Pencil className="w-4 h-4" /></button>
                                         <button className="p-2.5 bg-zinc-50 dark:bg-zinc-800 rounded-xl hover:text-rose-500 transition-colors shadow-sm" onClick={(e) => { e.stopPropagation(); }}><Trash2 className="w-4 h-4" /></button>
                                     </div>
                                 </div>
@@ -340,7 +496,8 @@ const ModuleExplorer = () => {
                                     <div className="flex items-center gap-3">
                                         <div className="px-3 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 text-[10px] font-black text-zinc-500">{st.screenKey || 'N/A'}</div>
                                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button className="p-2 hover:text-amber-500 transition-colors" onClick={(e) => e.stopPropagation()}><Pencil className="w-4 h-4" /></button>
+                                            <button className="p-2 hover:text-blue-500 transition-colors" onClick={(e) => handleViewDetail(e, st, 'Subtopic')}><Eye className="w-4 h-4" /></button>
+                                            <button className="p-2 hover:text-amber-500 transition-colors" onClick={(e) => handleOpenEditSubTopic(e, st)}><Pencil className="w-4 h-4" /></button>
                                             <button className="p-2 hover:text-rose-500 transition-colors" onClick={(e) => e.stopPropagation()}><Trash2 className="w-4 h-4" /></button>
                                         </div>
                                         <ChevronRight className="w-5 h-5 text-zinc-300 group-hover:translate-x-1 transition-transform" />
@@ -440,6 +597,371 @@ const ModuleExplorer = () => {
                     </div>
                 </div>
             )}
+
+            {/* Detail View Modal */}
+            {isViewModalOpen && viewObject && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-zinc-950/80 backdrop-blur-xl animate-in fade-in duration-500">
+                    <div className="bg-white dark:bg-zinc-900 border border-white/20 dark:border-zinc-800 rounded-[3rem] w-full max-w-2xl shadow-3xl animate-in zoom-in-95 slide-in-from-bottom-10 duration-500 overflow-hidden flex flex-col max-h-[85vh]">
+                        <div className="p-8 bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent border-b border-zinc-200 dark:border-zinc-800 relative flex-shrink-0 font-black italic">
+                            <button onClick={() => setIsViewModalOpen(false)} className="absolute top-8 right-8 p-3 hover:bg-white dark:hover:bg-zinc-800 rounded-xl transition-all shadow-sm border border-zinc-200 dark:border-zinc-700 active:scale-90 group">
+                                <X className="w-5 h-5 text-zinc-500 group-hover:rotate-90 transition-transform duration-300" />
+                            </button>
+                            <div className="flex items-center gap-6">
+                                <div className="w-16 h-16 rounded-2xl bg-blue-500 flex items-center justify-center text-white shadow-xl shadow-blue-500/20">
+                                    <Eye className="w-8 h-8" />
+                                </div>
+                                <div className="italic">
+                                    <p className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-[0.5em] mb-1 leading-none">{viewObjectType} Manifest</p>
+                                    <h2 className="text-2xl font-black text-zinc-900 dark:text-white uppercase leading-tight italic lowercase">{viewObject.name || viewObject.title || 'untitled node'}</h2>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto p-10 custom-scrollbar italic font-black">
+                            {detailLoading ? (
+                                <div className="flex flex-col items-center justify-center py-20 space-y-4">
+                                    <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
+                                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest animate-pulse">Decrypting Node Manifest...</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-8">
+                                    <section className="bg-zinc-50 dark:bg-zinc-950/40 border border-zinc-100 dark:border-zinc-800 rounded-[2.5rem] p-8 shadow-inner">
+                                        <p className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.3em] mb-6 flex items-center gap-3">
+                                            <div className="w-8 h-[1px] bg-blue-500/30"></div>
+                                            Core Identification
+                                        </p>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="p-4 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl shadow-sm">
+                                                <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1">System ID</p>
+                                                <p className="text-xs font-mono text-blue-600 dark:text-blue-400 truncate">{viewObject.id || viewObject._id}</p>
+                                            </div>
+                                            {viewObject.topicId && (
+                                                <div className="p-4 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl shadow-sm">
+                                                    <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1">Parent Node ID</p>
+                                                    <p className="text-xs font-black text-blue-600 dark:text-blue-400 uppercase italic">{viewObject.topicId}</p>
+                                                </div>
+                                            )}
+                                            {viewObject.order !== undefined && (
+                                                <div className="p-4 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl shadow-sm">
+                                                    <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1">Node Order Index</p>
+                                                    <p className="text-xs font-black text-zinc-900 dark:text-white">{viewObject.order}</p>
+                                                </div>
+                                            )}
+                                            {(viewObject.screenKey || viewObject.quizTopicName) && (
+                                                <div className="p-4 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl shadow-sm">
+                                                    <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1">Module Key</p>
+                                                    <p className="text-xs font-black text-zinc-900 dark:text-white uppercase">{viewObject.screenKey || viewObject.quizTopicName}</p>
+                                                </div>
+                                            )}
+                                            {viewObject.levelNum !== undefined && (
+                                                <div className="p-4 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl shadow-sm">
+                                                    <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1">Hierarchy Level</p>
+                                                    <p className="text-xs font-black text-zinc-900 dark:text-white uppercase">{viewObject.levelNum}</p>
+                                                </div>
+                                            )}
+                                            {viewObject.icon && (
+                                                <div className="p-4 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl shadow-sm">
+                                                    <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1">Icon Artifact</p>
+                                                    <p className="text-xs font-black text-zinc-900 dark:text-white uppercase italic">{viewObject.icon}</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </section>
+
+                                    {viewObject.description && (
+                                        <section className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                            <p className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.3em] mb-4 flex items-center gap-3 underline offset-4 decoration-2 decoration-blue-500/30">
+                                                Functional Documentation
+                                            </p>
+                                            <div className="bg-zinc-50 dark:bg-zinc-950/40 border border-zinc-100 dark:border-zinc-800 rounded-[2rem] p-8 shadow-inner">
+                                                <p className="text-zinc-600 dark:text-zinc-400 text-sm leading-relaxed lowercase">{viewObject.description}</p>
+                                            </div>
+                                        </section>
+                                    )}
+
+                                    {viewObject.nativeAdIndex !== undefined && (
+                                        <section className="bg-amber-500/5 border border-amber-500/10 rounded-2xl p-4 flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2 bg-amber-500/10 rounded-lg">
+                                                    <Zap className="w-4 h-4 text-amber-500" />
+                                                </div>
+                                                <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest">Ad Placement Index</p>
+                                            </div>
+                                            <span className="text-xs font-black text-amber-600">LVL-{viewObject.nativeAdIndex}</span>
+                                        </section>
+                                    )}
+
+                                    {viewObject.content && viewObject.content.contentItems && (
+                                        <section className="bg-blue-500/5 border border-blue-500/10 rounded-[2rem] p-6">
+                                            <p className="text-[9px] font-black text-blue-600 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                                <FileText className="w-3.5 h-3.5" />
+                                                Knowledge Artifact Stats
+                                            </p>
+                                            <div className="flex gap-4">
+                                                <div className="flex-1 p-3 bg-white dark:bg-zinc-900/50 rounded-xl border border-blue-500/10">
+                                                    <p className="text-[8px] font-black text-zinc-400 uppercase mb-1">Content Nodes</p>
+                                                    <p className="text-sm font-black text-zinc-900 dark:text-white">{viewObject.content.contentItems.length} Blocks</p>
+                                                </div>
+                                                <div className="flex-1 p-3 bg-white dark:bg-zinc-900/50 rounded-xl border border-blue-500/10">
+                                                    <p className="text-[8px] font-black text-zinc-400 uppercase mb-1">Runtime Status</p>
+                                                    <p className="text-sm font-black text-emerald-500">Verified</p>
+                                                </div>
+                                            </div>
+                                        </section>
+                                    )}
+
+                                    <section className="pt-4">
+                                        <p className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.3em] mb-4 flex items-center gap-3">
+                                            <div className="w-8 h-[1px] bg-emerald-500/30"></div>
+                                            System Status
+                                        </p>
+                                        <div className="flex gap-3">
+                                            <div className="px-5 py-2.5 bg-emerald-500/5 border border-emerald-500/10 rounded-full text-emerald-600 text-[9px] font-black uppercase tracking-widest flex items-center gap-2 shadow-sm">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                                                Active Protocol
+                                            </div>
+                                            <div className="px-5 py-2.5 bg-blue-500/5 border border-blue-500/10 rounded-full text-blue-600 text-[9px] font-black uppercase tracking-widest flex items-center gap-2 shadow-sm">
+                                                Production Ready
+                                            </div>
+                                        </div>
+                                    </section>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="p-8 border-t border-zinc-100 dark:border-zinc-800 flex gap-4">
+                            <button
+                                onClick={() => setIsViewModalOpen(false)}
+                                className="flex-1 py-4 bg-zinc-100 dark:bg-zinc-800 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] text-zinc-500 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all active:scale-95"
+                            >
+                                Close Manifest
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Topic Modal */}
+            {isEditModalOpen && editingTopic && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-zinc-950/80 backdrop-blur-xl animate-in fade-in duration-500">
+                    <div className="bg-white dark:bg-zinc-900 border border-white/20 dark:border-zinc-800 rounded-[3rem] w-full max-w-2xl shadow-3xl animate-in zoom-in-95 slide-in-from-bottom-10 duration-500 overflow-hidden flex flex-col max-h-[85vh]">
+                        <div className="p-8 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent border-b border-zinc-200 dark:border-zinc-800 relative flex-shrink-0 font-black italic">
+                            <button onClick={() => setIsEditModalOpen(false)} className="absolute top-8 right-8 p-3 hover:bg-white dark:hover:bg-zinc-800 rounded-xl transition-all shadow-sm border border-zinc-200 dark:border-zinc-700 active:scale-90 group">
+                                <X className="w-5 h-5 text-zinc-500 group-hover:rotate-90 transition-transform duration-300" />
+                            </button>
+                            <div className="flex items-center gap-6">
+                                <div className="w-16 h-16 rounded-2xl bg-amber-500 flex items-center justify-center text-white shadow-xl shadow-amber-500/20">
+                                    <Pencil className="w-8 h-8" />
+                                </div>
+                                <div className="italic">
+                                    <p className="text-[10px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-[0.5em] mb-1 leading-none">Modify Node Structure</p>
+                                    <h2 className="text-2xl font-black text-zinc-900 dark:text-white uppercase leading-tight italic lowercase">{editingTopic.name}</h2>
+                                </div>
+                            </div>
+                        </div>
+
+                        <form onSubmit={handleEditTopicSubmit} className="flex-1 overflow-y-auto p-10 custom-scrollbar italic font-black">
+                            <div className="space-y-6">
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Topic Name</label>
+                                        <input
+                                            type="text"
+                                            value={editFormData.name}
+                                            onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                                            className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-5 py-3 text-sm focus:border-amber-500/50 outline-none transition-all placeholder:text-zinc-400"
+                                            placeholder="Enter topic name..."
+                                            required
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Icon Artifact</label>
+                                        <input
+                                            type="text"
+                                            value={editFormData.icon}
+                                            onChange={(e) => setEditFormData({ ...editFormData, icon: e.target.value })}
+                                            className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-5 py-3 text-sm focus:border-amber-500/50 outline-none transition-all placeholder:text-zinc-400"
+                                            placeholder="e.g. info_outline, usb..."
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Functional Description</label>
+                                    <textarea
+                                        value={editFormData.description}
+                                        onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
+                                        className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-[2rem] px-6 py-4 text-sm focus:border-amber-500/50 outline-none transition-all placeholder:text-zinc-400 min-h-[120px] resize-none"
+                                        placeholder="Describe the node functionality..."
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Quiz Topic Identity</label>
+                                        <input
+                                            type="text"
+                                            value={editFormData.quizTopicName}
+                                            onChange={(e) => setEditFormData({ ...editFormData, quizTopicName: e.target.value })}
+                                            className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-5 py-3 text-sm focus:border-amber-500/50 outline-none transition-all placeholder:text-zinc-400"
+                                            placeholder="e.g. Introduction..."
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Ad Placement Index</label>
+                                        <input
+                                            type="number"
+                                            value={editFormData.nativeAdIndex}
+                                            onChange={(e) => setEditFormData({ ...editFormData, nativeAdIndex: parseInt(e.target.value) || 0 })}
+                                            className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-5 py-3 text-sm focus:border-amber-500/50 outline-none transition-all placeholder:text-zinc-400"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mt-10 p-6 bg-blue-500/5 border border-blue-500/10 rounded-[2rem] flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                                    <Activity className="w-5 h-5 text-blue-600" />
+                                </div>
+                                <p className="text-[9px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest leading-relaxed">
+                                    Confirming this update will synchronize the node manifest across the production environment.
+                                </p>
+                            </div>
+
+                            <div className="mt-8 flex gap-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsEditModalOpen(false)}
+                                    className="flex-1 py-4 bg-zinc-100 dark:bg-zinc-800 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] text-zinc-500 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all active:scale-95"
+                                >
+                                    Cancel Sync
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={editLoading}
+                                    className="flex-[2] py-4 bg-amber-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-lg shadow-amber-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:scale-100"
+                                >
+                                    {editLoading ? 'Synchronizing Node...' : 'Commit Update'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Subtopic Modal */}
+            {isEditSubTopicModalOpen && editingSubTopic && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-zinc-950/80 backdrop-blur-xl animate-in fade-in duration-500">
+                    <div className="bg-white dark:bg-zinc-900 border border-white/20 dark:border-zinc-800 rounded-[3rem] w-full max-w-2xl shadow-3xl animate-in zoom-in-95 slide-in-from-bottom-10 duration-500 overflow-hidden flex flex-col max-h-[85vh]">
+                        <div className="p-8 bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent border-b border-zinc-200 dark:border-zinc-800 relative flex-shrink-0 font-black italic">
+                            <button onClick={() => setIsEditSubTopicModalOpen(false)} className="absolute top-8 right-8 p-3 hover:bg-white dark:hover:bg-zinc-800 rounded-xl transition-all shadow-sm border border-zinc-200 dark:border-zinc-700 active:scale-90 group">
+                                <X className="w-5 h-5 text-zinc-500 group-hover:rotate-90 transition-transform duration-300" />
+                            </button>
+                            <div className="flex items-center gap-6">
+                                <div className="w-16 h-16 rounded-2xl bg-blue-500 flex items-center justify-center text-white shadow-xl shadow-blue-500/20">
+                                    <Layers className="w-8 h-8" />
+                                </div>
+                                <div className="italic">
+                                    <p className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-[0.5em] mb-1 leading-none">Modify Sub-Matrix Node</p>
+                                    <h2 className="text-2xl font-black text-zinc-900 dark:text-white uppercase leading-tight italic lowercase">{editingSubTopic.title || editingSubTopic.name}</h2>
+                                </div>
+                            </div>
+                        </div>
+
+                        <form onSubmit={handleEditSubTopicSubmit} className="flex-1 overflow-y-auto p-10 custom-scrollbar italic font-black">
+                            <div className="space-y-6">
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Subtopic Title</label>
+                                        <input
+                                            type="text"
+                                            value={editSubTopicFormData.title}
+                                            onChange={(e) => setEditSubTopicFormData({ ...editSubTopicFormData, title: e.target.value })}
+                                            className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-5 py-3 text-sm focus:border-blue-500/50 outline-none transition-all placeholder:text-zinc-400"
+                                            placeholder="Enter subtopic title..."
+                                            required
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Screen Key</label>
+                                        <input
+                                            type="text"
+                                            value={editSubTopicFormData.screenKey}
+                                            onChange={(e) => setEditSubTopicFormData({ ...editSubTopicFormData, screenKey: e.target.value })}
+                                            className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-5 py-3 text-sm focus:border-blue-500/50 outline-none transition-all placeholder:text-zinc-400"
+                                            placeholder="e.g. whatiskali..."
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Functional Description</label>
+                                    <textarea
+                                        value={editSubTopicFormData.description}
+                                        onChange={(e) => setEditSubTopicFormData({ ...editSubTopicFormData, description: e.target.value })}
+                                        className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-[2rem] px-6 py-4 text-sm focus:border-blue-500/50 outline-none transition-all placeholder:text-zinc-400 min-h-[120px] resize-none"
+                                        placeholder="Describe the sub-node functionality..."
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Icon Artifact</label>
+                                        <input
+                                            type="text"
+                                            value={editSubTopicFormData.icon}
+                                            onChange={(e) => setEditSubTopicFormData({ ...editSubTopicFormData, icon: e.target.value })}
+                                            className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-5 py-3 text-sm focus:border-blue-500/50 outline-none transition-all placeholder:text-zinc-400"
+                                            placeholder="e.g. info_outline,Layers..."
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Node Order Index</label>
+                                        <input
+                                            type="number"
+                                            value={editSubTopicFormData.order}
+                                            onChange={(e) => setEditSubTopicFormData({ ...editSubTopicFormData, order: parseInt(e.target.value) || 0 })}
+                                            className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-5 py-3 text-sm focus:border-blue-500/50 outline-none transition-all placeholder:text-zinc-400"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mt-10 p-6 bg-blue-500/5 border border-blue-500/10 rounded-[2rem] flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                                    <Activity className="w-5 h-5 text-blue-600" />
+                                </div>
+                                <p className="text-[9px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest leading-relaxed">
+                                    Confirming this update will synchronize the sub-matrix node across the production environment.
+                                </p>
+                            </div>
+
+                            <div className="mt-8 flex gap-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsEditSubTopicModalOpen(false)}
+                                    className="flex-1 py-4 bg-zinc-100 dark:bg-zinc-800 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] text-zinc-500 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all active:scale-95"
+                                >
+                                    Cancel Sync
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={editLoading}
+                                    className="flex-[2] py-4 bg-blue-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-lg shadow-blue-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:scale-100"
+                                >
+                                    {editLoading ? 'Synchronizing Sub-Node...' : 'Commit Update'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            <ConfirmationModal
+                {...confirmConfig}
+                onClose={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))}
+            />
         </div>
     );
 };

@@ -57,8 +57,8 @@ const topicService = {
      */
     updateTopic: async (id, payload) => {
         try {
-            // API expects PUT /api/topics/:id
-            const response = await axios.put(`${BASE_URL}/topics/${id}`, payload);
+            // API expects PATCH /api/topics/:id
+            const response = await axios.patch(`${BASE_URL}/topics/${id}`, payload);
             return response.data;
         } catch (error) {
             console.error('Error updating topic:', error);
