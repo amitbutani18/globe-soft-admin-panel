@@ -68,7 +68,7 @@ const subTopicService = {
      */
     updateSubTopic: async (id, data) => {
         try {
-            const response = await axios.put(`${BASE_URL}/${id}`, data);
+            const response = await axios.patch(`${BASE_URL}/${id}`, data);
             return response.data;
         } catch (error) {
             console.error('Synchronization failure:', error);
