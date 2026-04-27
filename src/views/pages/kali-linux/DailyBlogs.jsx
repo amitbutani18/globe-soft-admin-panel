@@ -17,7 +17,9 @@ import {
     ChevronsRight,
     Eye,
     Calendar,
-    Pencil
+    Pencil,
+    Activity,
+    Zap
 } from 'lucide-react';
 import ConfirmationModal from '../../../components/ConfirmationModal';
 import dailyBlogService from '../../../models/dailyBlogService';
