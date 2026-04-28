@@ -4,11 +4,11 @@ const BASE_URL = '/aesthetic-api';
 
 const subcategoryService = {
     // Fetch all subcategories
-    getSubcategories: async (page = 1, limit = 10) => {
+    getSubcategories: async (categoryId = null, page = 1, limit = 10) => {
         try {
-            const response = await axios.get(`${BASE_URL}/sub-Categorys`, {
-                params: { page, limit }
-            });
+            const params = { page, limit };
+            if (categoryId) params.CategoryId = categoryId;
+            const response = await axios.get(`${BASE_URL}/sub-Categorys`, { params });
             return response.data; // returns { success, data, pagination }
         } catch (error) {
             console.error('Error fetching subcategories:', error);
