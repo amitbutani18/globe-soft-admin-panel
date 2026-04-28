@@ -47,9 +47,9 @@ const dailyBlogService = {
      * Body: { title, content, quiz: [{question, options, correctAnswerIndex}] }
      * Response: { data: { id, title, content, quiz, created_at, updated_at }, message }
      */
-    addBlog: async ({ title, content, quiz }) => {
+    addBlog: async (payload) => {
         try {
-            const response = await axios.post(`${BASE_URL}/daily-blog`, { title, content, quiz });
+            const response = await axios.post(`${BASE_URL}/daily-blog`, payload);
             return response.data; // { data: {...}, message: "Daily blog created successfully" }
         } catch (error) {
             console.error('Error adding daily blog:', error);
@@ -63,13 +63,9 @@ const dailyBlogService = {
      * Body: { title, content, quiz: [{question, options, correctAnswerIndex}] }
      * Response: { data: { id, title, content, quiz, created_at, updated_at }, message }
      */
-    updateBlog: async (id, { title, content, quiz }) => {
+    updateBlog: async (id, payload) => {
         try {
-            const response = await axios.put(`${BASE_URL}/daily-blog/${id}`, {
-                title,
-                content,
-                quiz
-            });
+            const response = await axios.put(`${BASE_URL}/daily-blog/${id}`, payload);
             return response.data; // { data: {...}, message: "Daily blog updated successfully" }
         } catch (error) {
             console.error('Error updating daily blog:', error);
