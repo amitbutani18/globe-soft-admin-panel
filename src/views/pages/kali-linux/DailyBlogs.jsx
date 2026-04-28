@@ -35,10 +35,12 @@ const LIMIT_OPTIONS = [5, 10, 20, 50];
 
 const DailyBlogs = () => {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+    const [importJson, setImportJson] = useState('');
     const [isDetailOpen, setIsDetailOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editingBlog, setEditingBlog] = useState(null);
-    const [editFormData, setEditFormData] = useState({ title: '', content: '', quiz: [emptyQuestion()] });
+    const [editFormData, setEditFormData] = useState({ id: '', title: '', date: '', date_sort: '', created_at: '', updated_at: '', content: '', quiz: [emptyQuestion()] });
     const [editLoading, setEditLoading] = useState(false);
     const [selectedBlog, setSelectedBlog] = useState(null);
     const [viewLoading, setViewLoading] = useState(null); // stores blog.id while loading
@@ -56,7 +58,12 @@ const DailyBlogs = () => {
 
     // Form state — API only accepts: title, content, quiz
     const [formData, setFormData] = useState({
+        id: '',
         title: '',
+        date: '',
+        date_sort: '',
+        created_at: '',
+        updated_at: '',
         content: '',
         quiz: [emptyQuestion()],
     });
@@ -127,7 +134,12 @@ const DailyBlogs = () => {
     const openEdit = (blog) => {
         setEditingBlog(blog);
         setEditFormData({
+            id: blog.id || blog._id || '',
             title: blog.title || '',
+            date: blog.date || '',
+            date_sort: blog.date_sort || '',
+            created_at: blog.created_at || '',
+            updated_at: blog.updated_at || '',
             content: blog.content || '',
             quiz: blog.quiz?.length > 0
                 ? blog.quiz.map(q => ({ ...q, options: [...q.options] }))
@@ -224,7 +236,7 @@ const DailyBlogs = () => {
             // Optimistically prepend new blog so it shows instantly
             if (newBlog) setBlogs(prev => [newBlog, ...prev]);
             setIsAddModalOpen(false);
-            setFormData({ title: '', content: '', quiz: [emptyQuestion()] });
+            setFormData({ id: '', title: '', date: '', date_sort: '', created_at: '', updated_at: '', content: '', quiz: [emptyQuestion()] });
             // Refresh from server to get accurate pagination counts
             fetchBlogs(page, limit);
         } catch (error) {
@@ -233,6 +245,40 @@ const DailyBlogs = () => {
         } finally {
             setLoading(false);
             setConfirmConfig({ ...confirmConfig, isOpen: false });
+        }
+    };
+
+    const executeImport = async (parsedData) => {
+        setLoading(true);
+        try {
+            const result = await dailyBlogService.addBlog(parsedData);
+            const newBlog = result?.data;
+            if (newBlog) setBlogs(prev => [newBlog, ...prev]);
+            setIsImportModalOpen(false);
+            setImportJson('');
+            fetchBlogs(page, limit);
+        } catch (error) {
+            const msg = error.response?.data?.message || error.message;
+            alert(`Failed to import blog: ${msg}`);
+        } finally {
+            setLoading(false);
+            setConfirmConfig({ ...confirmConfig, isOpen: false });
+        }
+    };
+
+    const handleImportSubmit = (e) => {
+        e.preventDefault();
+        try {
+            const parsedData = JSON.parse(importJson);
+            setConfirmConfig({
+                isOpen: true,
+                type: 'success',
+                title: 'Import Blog Post',
+                message: 'Are you sure you want to import this JSON data?',
+                onConfirm: () => executeImport(parsedData)
+            });
+        } catch (error) {
+            alert("Invalid JSON format. Please check your data.");
         }
     };
 
@@ -302,6 +348,13 @@ const DailyBlogs = () => {
                         title="Refresh Intel"
                     >
                         <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                    </button>
+                    <button
+                        onClick={() => setIsImportModalOpen(true)}
+                        className="flex items-center gap-2 px-5 py-2 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/20 rounded-xl transition-all font-bold shadow-sm active:scale-95 text-[10px] uppercase tracking-widest"
+                    >
+                        <FileText className="w-4 h-4" />
+                        Import Intel
                     </button>
                     <button
                         onClick={() => setIsAddModalOpen(true)}
@@ -416,7 +469,7 @@ const DailyBlogs = () => {
                                             </span>
                                         </td>
                                         <td className="px-6 py-2.5 text-right">
-                                            <div className="flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <div className="flex items-center justify-end gap-1.5">
                                                 <button onClick={() => openView(blog)} className="p-2 hover:bg-indigo-500/10 text-indigo-500 rounded-lg transition-all" title="View"><Eye className="w-3.5 h-3.5" /></button>
                                                 <button onClick={() => openEdit(blog)} className="p-2 hover:bg-amber-500/10 text-amber-500 rounded-lg transition-all" title="Edit"><Pencil className="w-3.5 h-3.5" /></button>
                                                 <button onClick={() => handleDelete(blog)} className="p-2 hover:bg-rose-500/10 text-rose-500 rounded-lg transition-all" title="Delete"><Trash2 className="w-3.5 h-3.5" /></button>
@@ -599,6 +652,15 @@ const DailyBlogs = () => {
                             </div>
 
                             <form onSubmit={handleEditSubmit} className="overflow-y-auto p-7 space-y-5">
+                                <div className="space-y-2 text-xs">
+                                    <label className="font-bold text-zinc-500 ml-1 uppercase tracking-widest">ID (optional MongoDB _id)</label>
+                                    <input
+                                        type="text" name="id" value={editFormData.id} onChange={handleEditField}
+                                        className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 focus:border-amber-500 outline-none transition-all text-sm font-mono text-amber-600"
+                                        placeholder="e.g. 507f1f77bcf86cd799439011"
+                                    />
+                                </div>
+
                                 {/* Title */}
                                 <div className="space-y-2 text-xs">
                                     <label className="font-bold text-zinc-500 ml-1 uppercase tracking-widest">Title *</label>
@@ -606,6 +668,44 @@ const DailyBlogs = () => {
                                         type="text" name="title" required value={editFormData.title} onChange={handleEditField}
                                         className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 focus:border-amber-500 outline-none transition-all text-sm"
                                     />
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2 text-xs">
+                                        <label className="font-bold text-zinc-500 ml-1 uppercase tracking-widest">Date</label>
+                                        <input
+                                            type="text" name="date" value={editFormData.date} onChange={handleEditField}
+                                            className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 focus:border-amber-500 outline-none transition-all text-sm"
+                                            placeholder="e.g. 10 SEP 2026"
+                                        />
+                                    </div>
+                                    <div className="space-y-2 text-xs">
+                                        <label className="font-bold text-zinc-500 ml-1 uppercase tracking-widest">Date Sort</label>
+                                        <input
+                                            type="text" name="date_sort" value={editFormData.date_sort} onChange={handleEditField}
+                                            className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 focus:border-amber-500 outline-none transition-all text-sm"
+                                            placeholder="e.g. 2026-09-10"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2 text-xs">
+                                        <label className="font-bold text-zinc-500 ml-1 uppercase tracking-widest">Created At</label>
+                                        <input
+                                            type="text" name="created_at" value={editFormData.created_at} onChange={handleEditField}
+                                            className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 focus:border-amber-500 outline-none transition-all text-sm font-mono"
+                                            placeholder="e.g. 2026-04-30T00:00:00.000Z"
+                                        />
+                                    </div>
+                                    <div className="space-y-2 text-xs">
+                                        <label className="font-bold text-zinc-500 ml-1 uppercase tracking-widest">Updated At</label>
+                                        <input
+                                            type="text" name="updated_at" value={editFormData.updated_at} onChange={handleEditField}
+                                            className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 focus:border-amber-500 outline-none transition-all text-sm font-mono"
+                                            placeholder="e.g. 2026-04-30T00:00:00.000Z"
+                                        />
+                                    </div>
                                 </div>
 
                                 {/* Content */}
@@ -703,12 +803,59 @@ const DailyBlogs = () => {
 
                             <form onSubmit={handleSubmit} className="overflow-y-auto p-7 space-y-5">
                                 <div className="space-y-2 text-xs">
+                                    <label className="font-bold text-zinc-500 ml-1 uppercase tracking-widest">ID (optional MongoDB _id)</label>
+                                    <input
+                                        type="text" name="id" value={formData.id} onChange={handleField}
+                                        className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 focus:border-green-500 outline-none transition-all text-sm font-mono text-green-600"
+                                        placeholder="e.g. 507f1f77bcf86cd799439011"
+                                    />
+                                </div>
+
+                                <div className="space-y-2 text-xs">
                                     <label className="font-bold text-zinc-500 ml-1 uppercase tracking-widest">Title *</label>
                                     <input
                                         type="text" name="title" required value={formData.title} onChange={handleField}
                                         className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 focus:border-green-500 outline-none transition-all placeholder:text-zinc-300 dark:placeholder:text-zinc-700 text-sm"
                                         placeholder="Proxychains: Anonymous Network Communication..."
                                     />
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2 text-xs">
+                                        <label className="font-bold text-zinc-500 ml-1 uppercase tracking-widest">Date</label>
+                                        <input
+                                            type="text" name="date" value={formData.date} onChange={handleField}
+                                            className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 focus:border-green-500 outline-none transition-all placeholder:text-zinc-300 dark:placeholder:text-zinc-700 text-sm"
+                                            placeholder="e.g. 10 SEP 2026"
+                                        />
+                                    </div>
+                                    <div className="space-y-2 text-xs">
+                                        <label className="font-bold text-zinc-500 ml-1 uppercase tracking-widest">Date Sort</label>
+                                        <input
+                                            type="text" name="date_sort" value={formData.date_sort} onChange={handleField}
+                                            className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 focus:border-green-500 outline-none transition-all placeholder:text-zinc-300 dark:placeholder:text-zinc-700 text-sm"
+                                            placeholder="e.g. 2026-09-10"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2 text-xs">
+                                        <label className="font-bold text-zinc-500 ml-1 uppercase tracking-widest">Created At</label>
+                                        <input
+                                            type="text" name="created_at" value={formData.created_at} onChange={handleField}
+                                            className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 focus:border-green-500 outline-none transition-all text-sm font-mono"
+                                            placeholder="e.g. 2026-04-30T00:00:00.000Z"
+                                        />
+                                    </div>
+                                    <div className="space-y-2 text-xs">
+                                        <label className="font-bold text-zinc-500 ml-1 uppercase tracking-widest">Updated At</label>
+                                        <input
+                                            type="text" name="updated_at" value={formData.updated_at} onChange={handleField}
+                                            className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 focus:border-green-500 outline-none transition-all text-sm font-mono"
+                                            placeholder="e.g. 2026-04-30T00:00:00.000Z"
+                                        />
+                                    </div>
                                 </div>
 
                                 <div className="space-y-2 text-xs">
@@ -792,6 +939,49 @@ const DailyBlogs = () => {
                     </div>
                 )
             }
+
+            {/* ── Import Blog Modal ─────────────────────────────────────── */}
+            {
+                isImportModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-zinc-950/40 backdrop-blur-md animate-in fade-in duration-300">
+                        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl w-full max-w-2xl shadow-2xl animate-in zoom-in-95 duration-300 max-h-[90vh] flex flex-col">
+                            <div className="p-7 bg-zinc-50 dark:bg-zinc-950/50 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between flex-shrink-0">
+                                <div>
+                                    <h2 className="text-xl font-bold">Import JSON Data</h2>
+                                    <p className="text-xs text-zinc-500 mt-1 uppercase tracking-widest">Paste direct JSON object.</p>
+                                </div>
+                                <button onClick={() => setIsImportModalOpen(false)} className="p-2 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-xl transition-colors text-zinc-400">
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            <form onSubmit={handleImportSubmit} className="overflow-y-auto p-7 space-y-5">
+                                <div className="space-y-2 text-xs">
+                                    <label className="font-bold text-zinc-500 ml-1 uppercase tracking-widest">JSON Content *</label>
+                                    <textarea
+                                        name="importJson" required value={importJson} onChange={e => setImportJson(e.target.value)} rows={15}
+                                        className="w-full bg-slate-900 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 outline-none transition-all resize-none text-green-400 font-mono text-sm focus:ring-2 focus:ring-indigo-500/50"
+                                        placeholder={'{\n  "title": "...",\n  "content": "...",\n  "quiz": [\n    {\n      "question": "...",\n      "options": ["A", "B", "C", "D"],\n      "correctAnswerIndex": 0\n    }\n  ]\n}'}
+                                    />
+                                </div>
+
+                                <div className="flex items-center gap-3 pt-2">
+                                    <button type="button" onClick={() => setIsImportModalOpen(false)}
+                                        className="px-5 py-3.5 rounded-xl border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all font-bold text-sm uppercase tracking-widest">
+                                        Cancel
+                                    </button>
+                                    <button type="submit" disabled={loading}
+                                        className="flex-1 px-5 py-3.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 rounded-xl font-bold transition-all shadow-lg shadow-indigo-500/20 active:scale-[0.98] flex items-center justify-center gap-2 text-sm uppercase tracking-widest text-white">
+                                        <Save className="w-4 h-4" />
+                                        {loading ? 'Importing...' : 'Import Blog'}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )
+            }
+
             {/* ── Confirmation Modal ─────────────────────────────────── */}
             <ConfirmationModal
                 isOpen={confirmConfig.isOpen}
