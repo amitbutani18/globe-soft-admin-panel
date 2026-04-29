@@ -5,7 +5,7 @@ import {
     CheckCircle2, Calendar, FileText, ChevronsLeft, ChevronsRight
 } from 'lucide-react';
 import categoryService from '../../../models/categoryService';
-import subCategoryService from '../../../models/subCategoryService';
+import subCategoryService from '../../../models/subcategoryService';
 import ConfirmationModal from '../../../components/ConfirmationModal';
 import ImageUploader from '../../../components/ImageUploader';
 
