@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
     Plus, Search, RefreshCw, Layers, Save, X, Trash2, Eye, Pencil,
     ChevronLeft, ChevronRight, LayoutGrid, List, Activity, Image as ImageIcon,
-    CheckCircle2, Calendar, FileText
+    CheckCircle2, Calendar, FileText, ChevronsLeft, ChevronsRight
 } from 'lucide-react';
 import categoryService from '../../../models/categoryService';
 import subCategoryService from '../../../models/subCategoryService';
@@ -22,6 +22,10 @@ const Category = () => {
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(20);
     const [pagination, setPagination] = useState({ current_page: 1, limit: 20, total_items: 0, total_pages: 1 });
+
+    const [subPage, setSubPage] = useState(1);
+    const [subLimit, setSubLimit] = useState(20);
+    const [subPagination, setSubPagination] = useState({ current_page: 1, limit: 20, total_items: 0, total_pages: 1 });
 
     const [adding, setAdding] = useState(false);
     const [updating, setUpdating] = useState(false);
@@ -64,12 +68,13 @@ const Category = () => {
         if (viewLevel === 0) fetchCategories(page, limit);
     }, [fetchCategories, viewLevel, page, limit]);
 
-    const fetchSubCategories = async (catId) => {
+    const fetchSubCategories = async (catId, p = subPage, l = subLimit) => {
         setLoading(true);
         try {
-            const res = await subCategoryService.getSubcategories(catId, 1, 100);
+            const res = await subCategoryService.getSubcategories(catId, p, l);
             if (res && res.success) {
                 setSubCategories(res.data || []);
+                if (res.pagination) setSubPagination(res.pagination);
             }
         } catch (error) {
             console.error(error);
@@ -83,7 +88,8 @@ const Category = () => {
         setSelectedCategory(cat);
         setViewLevel(1);
         setSearchQuery('');
-        fetchSubCategories(cat.id);
+        setSubPage(1);
+        fetchSubCategories(cat.id, 1, subLimit);
     };
 
     const goBack = () => {
@@ -139,7 +145,7 @@ const Category = () => {
             if (res.success) {
                 setIsAddSubOpen(false);
                 setSubForm({ name: '', refImage: '', prompt: '', is_active: true, seq_num: 1 });
-                fetchSubCategories(selectedCategory.id);
+                fetchSubCategories(selectedCategory.id, subPage, subLimit);
             }
         } catch (error) { alert('Error: ' + error.message); }
         finally { setAdding(false); setConfirmConfig(p => ({ ...p, isOpen: false })); }
@@ -152,7 +158,7 @@ const Category = () => {
             const res = await subCategoryService.patchSubcategory(id, data);
             if (res.success) {
                 setIsEditSubOpen(false);
-                fetchSubCategories(selectedCategory.id);
+                fetchSubCategories(selectedCategory.id, subPage, subLimit);
             }
         } catch (error) { alert('Error: ' + error.message); }
         finally { setUpdating(false); setConfirmConfig(p => ({ ...p, isOpen: false })); }
@@ -162,7 +168,7 @@ const Category = () => {
         setLoading(true);
         try {
             await subCategoryService.deleteSubcategory(id);
-            fetchSubCategories(selectedCategory.id);
+            fetchSubCategories(selectedCategory.id, subPage, subLimit);
         } catch (error) { alert('Error: ' + error.message); }
         finally { setLoading(false); setConfirmConfig(p => ({ ...p, isOpen: false })); }
     };
@@ -176,6 +182,23 @@ const Category = () => {
         setViewObject(item);
         setViewType(type);
         setIsViewModalOpen(true);
+    };
+
+    const getPageNumbers = (total, current) => {
+        if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+        const pages = new Set([1, total, current, current - 1, current + 1].filter(p => p >= 1 && p <= total));
+        return [...pages].sort((a, b) => a - b);
+    };
+
+    const goToPage = (p) => {
+        const clamped = Math.max(1, Math.min(p, pagination.total_pages));
+        setPage(clamped);
+    };
+
+    const goToSubPage = (p) => {
+        const clamped = Math.max(1, Math.min(p, subPagination.total_pages));
+        setSubPage(clamped);
+        if (selectedCategory) fetchSubCategories(selectedCategory.id, clamped, subLimit);
     };
 
     const filteredCats = categories.filter(c => c.name?.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -219,6 +242,19 @@ const Category = () => {
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl pl-9 pr-3 py-1.5 text-xs w-48 focus:border-emerald-500/50 outline-none transition-all"
                         />
+                    </div>
+                    <div className="px-3 py-1.5 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl text-[10px] font-black uppercase tracking-widest text-zinc-500 flex items-center gap-1.5 border border-zinc-200 dark:border-zinc-700">
+                        {viewLevel === 0 ? (
+                            <>
+                                <Layers className="w-3.5 h-3.5 text-emerald-500" />
+                                <span>{pagination.total_items} Categories</span>
+                            </>
+                        ) : (
+                            <>
+                                <Layers className="w-3.5 h-3.5 text-blue-500" />
+                                <span>{subPagination.total_items} Sub-Categories</span>
+                            </>
+                        )}
                     </div>
                     <button
                         onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
@@ -294,6 +330,35 @@ const Category = () => {
                 )
             )}
 
+            {/* Pagination for Categories */}
+            {viewLevel === 0 && !loading && pagination.total_pages > 0 && (
+                <div className="px-5 py-4 border border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-3 bg-white dark:bg-zinc-900 rounded-2xl shadow-sm shrink-0">
+                    <p className="text-xs text-zinc-500 font-medium whitespace-nowrap">
+                        Displaying <span className="font-bold text-zinc-700 dark:text-zinc-300">{(pagination.current_page - 1) * pagination.limit + 1}–{Math.min(pagination.current_page * pagination.limit, pagination.total_items)}</span> of <span className="font-bold text-zinc-700 dark:text-zinc-300">{pagination.total_items}</span> Categories
+                    </p>
+                    <div className="flex items-center gap-1 flex-wrap justify-center">
+                        <button onClick={() => goToPage(1)} disabled={page <= 1} className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-30 transition-colors">
+                            <ChevronsLeft className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => goToPage(page - 1)} disabled={page <= 1} className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-30 transition-colors">
+                            <ChevronLeft className="w-4 h-4" />
+                        </button>
+                        {getPageNumbers(pagination.total_pages, pagination.current_page).map((p, i, arr) => (
+                            <React.Fragment key={p}>
+                                {i > 0 && arr[i - 1] !== p - 1 && <span className="w-8 text-center text-zinc-400 text-sm">…</span>}
+                                <button onClick={() => goToPage(p)} className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${page === p ? 'bg-emerald-600 text-white shadow shadow-emerald-500/20' : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'}`}>{p}</button>
+                            </React.Fragment>
+                        ))}
+                        <button onClick={() => goToPage(page + 1)} disabled={page >= pagination.total_pages} className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-30 transition-colors">
+                            <ChevronRight className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => goToPage(pagination.total_pages)} disabled={page >= pagination.total_pages} className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-30 transition-colors">
+                            <ChevronsRight className="w-4 h-4" />
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* Level 1: SubCategories */}
             {viewLevel === 1 && (
                 viewMode === 'grid' ? (
@@ -352,18 +417,47 @@ const Category = () => {
                 )
             )}
 
+            {/* Pagination for SubCategories */}
+            {viewLevel === 1 && !loading && subPagination.total_pages > 0 && (
+                <div className="px-5 py-4 border border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-3 bg-white dark:bg-zinc-900 rounded-2xl shadow-sm shrink-0">
+                    <p className="text-xs text-zinc-500 font-medium whitespace-nowrap">
+                        Displaying <span className="font-bold text-zinc-700 dark:text-zinc-300">{(subPagination.current_page - 1) * subPagination.limit + 1}–{Math.min(subPagination.current_page * subPagination.limit, subPagination.total_items)}</span> of <span className="font-bold text-zinc-700 dark:text-zinc-300">{subPagination.total_items}</span> Sub-Categories
+                    </p>
+                    <div className="flex items-center gap-1 flex-wrap justify-center">
+                        <button onClick={() => goToSubPage(1)} disabled={subPage <= 1} className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-30 transition-colors">
+                            <ChevronsLeft className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => goToSubPage(subPage - 1)} disabled={subPage <= 1} className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-30 transition-colors">
+                            <ChevronLeft className="w-4 h-4" />
+                        </button>
+                        {getPageNumbers(subPagination.total_pages, subPagination.current_page).map((p, i, arr) => (
+                            <React.Fragment key={p}>
+                                {i > 0 && arr[i - 1] !== p - 1 && <span className="w-8 text-center text-zinc-400 text-sm">…</span>}
+                                <button onClick={() => goToSubPage(p)} className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${subPage === p ? 'bg-blue-600 text-white shadow shadow-blue-500/20' : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'}`}>{p}</button>
+                            </React.Fragment>
+                        ))}
+                        <button onClick={() => goToSubPage(subPage + 1)} disabled={subPage >= subPagination.total_pages} className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-30 transition-colors">
+                            <ChevronRight className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => goToSubPage(subPagination.total_pages)} disabled={subPage >= subPagination.total_pages} className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-30 transition-colors">
+                            <ChevronsRight className="w-4 h-4" />
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* View Details Modal */}
             {isViewModalOpen && viewObject && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-zinc-950/80 backdrop-blur-xl animate-in fade-in duration-500">
                     <div className="bg-white dark:bg-zinc-900 border border-white/20 dark:border-zinc-800 rounded-[3rem] w-full max-w-2xl shadow-3xl animate-in zoom-in-95 overflow-hidden flex flex-col max-h-[85vh]">
-                        <div className={`p-8 bg-gradient-to-br ${viewObjectType === 'Category' ? 'from-emerald-500/10 via-emerald-500/5' : 'from-blue-500/10 via-blue-500/5'} to-transparent border-b border-zinc-200 dark:border-zinc-800 relative flex-shrink-0`}>
+                        <div className={`p-8 bg-gradient-to-br ${viewType === 'Category' ? 'from-emerald-500/10 via-emerald-500/5' : 'from-blue-500/10 via-blue-500/5'} to-transparent border-b border-zinc-200 dark:border-zinc-800 relative flex-shrink-0`}>
                             <button onClick={() => setIsViewModalOpen(false)} className="absolute top-8 right-8 p-3 hover:bg-white dark:hover:bg-zinc-800 rounded-xl transition-all shadow-sm border border-zinc-200"><X className="w-5 h-5 text-zinc-500" /></button>
-                            <h2 className="text-2xl font-black text-zinc-900 dark:text-white uppercase italic">{viewObjectType} Details</h2>
+                            <h2 className="text-2xl font-black text-zinc-900 dark:text-white uppercase italic">{viewType} Details</h2>
                         </div>
                         <div className="flex-1 overflow-y-auto p-10 custom-scrollbar">
                             <div className="flex justify-center mb-8">
                                 <div className="w-48 h-48 rounded-[2rem] overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-xl">
-                                    <img src={viewObjectType === 'Category' ? viewObject.beforeImage : viewObject.refImage} className="w-full h-full object-cover" />
+                                    <img src={viewType === 'Category' ? viewObject.beforeImage : viewObject.refImage} className="w-full h-full object-cover" />
                                 </div>
                             </div>
                             <div className="space-y-6">
@@ -371,7 +465,7 @@ const Category = () => {
                                     <h3 className="text-[10px] uppercase font-black text-zinc-500 tracking-widest pl-1">Name</h3>
                                     <p className="font-black text-xl italic uppercase text-zinc-900">{viewObject.name}</p>
                                 </div>
-                                {viewObjectType === 'SubCategory' && (
+                                {viewType === 'SubCategory' && (
                                     <div>
                                         <h3 className="text-[10px] uppercase font-black text-zinc-500 tracking-widest pl-1 mb-2">Prompt Setup</h3>
                                         <p className="font-medium text-sm bg-zinc-50 dark:bg-zinc-950 p-6 rounded-[2rem] border border-zinc-200 dark:border-zinc-800 leading-relaxed text-zinc-700">{viewObject.prompt}</p>
