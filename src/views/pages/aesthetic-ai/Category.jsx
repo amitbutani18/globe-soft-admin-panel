@@ -110,7 +110,10 @@ const Category = () => {
                 setCatForm({ name: '', beforeImage: '', is_active: true, seq_num: 1 });
                 fetchCategories(page, limit);
             }
-        } catch (error) { alert('Error: ' + error.message); }
+        } catch (error) { 
+            const backendMsg = error.response?.data?.error || error.response?.data?.message || error.message;
+            alert('Error: ' + backendMsg); 
+        }
         finally { setAdding(false); setConfirmConfig(p => ({ ...p, isOpen: false })); }
     };
 
@@ -261,6 +264,14 @@ const Category = () => {
                         className="p-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-xl transition-all text-zinc-500 hover:text-emerald-500"
                     >
                         {viewMode === 'grid' ? <List className="w-4 h-4" /> : <LayoutGrid className="w-4 h-4" />}
+                    </button>
+                    <button
+                        onClick={() => viewLevel === 0 ? fetchCategories(page, limit) : fetchSubCategories(selectedCategory.id, subPage, subLimit)}
+                        className={`p-1.5 border border-zinc-200 dark:border-zinc-800 rounded-xl transition-all text-zinc-500 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        disabled={loading}
+                        title="Refresh Data"
+                    >
+                        <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-emerald-500' : ''}`} />
                     </button>
                     <button
                         onClick={() => viewLevel === 0 ? setIsAddCatOpen(true) : setIsAddSubOpen(true)}
