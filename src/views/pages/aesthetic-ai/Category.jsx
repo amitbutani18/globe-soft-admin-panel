@@ -1,74 +1,63 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-    Plus,
-    Search,
-    RefreshCw,
-    Layers,
-    Save,
-    X,
-    Trash2,
-    MoreVertical,
-    CheckCircle2,
-    ChevronLeft,
-    ChevronRight,
-    ChevronsLeft,
-    ChevronsRight,
-    Eye,
-    Calendar,
-    Pencil,
-    Image as ImageIcon,
-    Filter
+    Plus, Search, RefreshCw, Layers, Save, X, Trash2, Eye, Pencil,
+    ChevronLeft, ChevronRight, LayoutGrid, List, Activity, Image as ImageIcon,
+    CheckCircle2, Calendar, FileText, ChevronsLeft, ChevronsRight
 } from 'lucide-react';
 import categoryService from '../../../models/categoryService';
+import subCategoryService from '../../../models/subcategoryService';
 import ConfirmationModal from '../../../components/ConfirmationModal';
-
-// Items per page options
-const LIMIT_OPTIONS = [5, 10, 20, 50];
+import ImageUploader from '../../../components/ImageUploader';
 
 const Category = () => {
-    const [loading, setLoading] = useState(false);
-    const [categories, setCategories] = useState([]);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [page, setPage] = useState(1);
-    const [limit, setLimit] = useState(10);
-    const [pagination, setPagination] = useState({ current_page: 1, limit: 10, total_items: 0, total_pages: 1 });
-    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-    const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [viewLevel, setViewLevel] = useState(0);
+    const [viewMode, setViewMode] = useState('list');
     const [selectedCategory, setSelectedCategory] = useState(null);
+
+    const [categories, setCategories] = useState([]);
+    const [subCategories, setSubCategories] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const [page, setPage] = useState(1);
+    const [limit, setLimit] = useState(20);
+    const [pagination, setPagination] = useState({ current_page: 1, limit: 20, total_items: 0, total_pages: 1 });
+
+    const [subPage, setSubPage] = useState(1);
+    const [subLimit, setSubLimit] = useState(20);
+    const [subPagination, setSubPagination] = useState({ current_page: 1, limit: 20, total_items: 0, total_pages: 1 });
+
     const [adding, setAdding] = useState(false);
     const [updating, setUpdating] = useState(false);
 
-    // Confirmation State
     const [confirmConfig, setConfirmConfig] = useState({ isOpen: false, type: 'warning', title: '', message: '', onConfirm: null });
 
-    const [categoryFormData, setCategoryFormData] = useState({
-        name: '',
-        beforeImage: '',
-        afterImage: '',
-        is_active: true,
-        seq_num: 1
-    });
-    const [editFormData, setEditFormData] = useState({
-        name: '',
-        beforeImage: '',
-        afterImage: '',
-        is_active: true,
-        seq_num: 1
-    });
+    // Modals
+    const [isAddCatOpen, setIsAddCatOpen] = useState(false);
+    const [isEditCatOpen, setIsEditCatOpen] = useState(false);
+    const [isAddSubOpen, setIsAddSubOpen] = useState(false);
+    const [isEditSubOpen, setIsEditSubOpen] = useState(false);
+    const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+
+    const [viewObject, setViewObject] = useState(null);
+    const [viewType, setViewType] = useState('Category');
+
+    const [catForm, setCatForm] = useState({ name: '', beforeImage: '', is_active: true, seq_num: 1 });
+    const [editCatForm, setEditCatForm] = useState({ id: '', name: '', beforeImage: '', is_active: true, seq_num: 1 });
+
+    const [subForm, setSubForm] = useState({ name: '', refImage: '', prompt: '', is_active: true, seq_num: 1 });
+    const [editSubForm, setEditSubForm] = useState({ id: '', name: '', refImage: '', prompt: '', is_active: true, seq_num: 1 });
 
     const fetchCategories = useCallback(async (p = page, l = limit) => {
         setLoading(true);
         try {
-            const response = await categoryService.getCategories(p, l);
-            if (response && response.success) {
-                setCategories(response.data || []);
-                if (response.pagination) {
-                    setPagination(response.pagination);
-                }
+            const res = await categoryService.getCategories(p, l);
+            if (res && res.success) {
+                setCategories(res.data || []);
+                if (res.pagination) setPagination(res.pagination);
             }
         } catch (error) {
-            console.error('Failed to fetch categories:', error);
+            console.error(error);
             setCategories([]);
         } finally {
             setLoading(false);
@@ -76,724 +65,599 @@ const Category = () => {
     }, [page, limit]);
 
     useEffect(() => {
-        fetchCategories(page, limit);
-    }, [fetchCategories, page, limit]);
+        if (viewLevel === 0) fetchCategories(page, limit);
+    }, [fetchCategories, viewLevel, page, limit]);
 
-    const executeAddCategory = async () => {
+    const fetchSubCategories = async (catId, p = subPage, l = subLimit) => {
+        setLoading(true);
+        try {
+            const res = await subCategoryService.getSubcategories(catId, p, l);
+            if (res && res.success) {
+                setSubCategories(res.data || []);
+                if (res.pagination) setSubPagination(res.pagination);
+            }
+        } catch (error) {
+            console.error(error);
+            setSubCategories([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleCategoryClick = (cat) => {
+        setSelectedCategory(cat);
+        setViewLevel(1);
+        setSearchQuery('');
+        setSubPage(1);
+        fetchSubCategories(cat.id, 1, subLimit);
+    };
+
+    const goBack = () => {
+        if (viewLevel > 0) {
+            setViewLevel(0);
+            setSelectedCategory(null);
+            setSearchQuery('');
+        }
+    };
+
+    // Category CRUD
+    const executeAddCat = async () => {
         setAdding(true);
         try {
-            const response = await categoryService.addCategory(categoryFormData);
-            if (response.success) {
-                setIsAddModalOpen(false);
-                setCategoryFormData({ name: '', beforeImage: '', afterImage: '', is_active: true, seq_num: 1 });
-                fetchCategories(1, limit); // Refresh list
+            const res = await categoryService.addCategory(catForm);
+            if (res.success) {
+                setIsAddCatOpen(false);
+                setCatForm({ name: '', beforeImage: '', is_active: true, seq_num: 1 });
+                fetchCategories(page, limit);
             }
-        } catch (error) {
-            alert('Failed to add category: ' + (error.response?.data?.message || error.message));
-        } finally {
-            setAdding(false);
-            setConfirmConfig({ ...confirmConfig, isOpen: false });
-        }
+        } catch (error) { alert('Error: ' + error.message); }
+        finally { setAdding(false); setConfirmConfig(p => ({ ...p, isOpen: false })); }
     };
 
-    const handleAddCategory = (e) => {
-        e.preventDefault();
-        setConfirmConfig({
-            isOpen: true,
-            type: 'success',
-            title: 'Finalize Category Creation',
-            message: 'Are you sure you want to commit this new category to the matrix?',
-            onConfirm: executeAddCategory
-        });
-    };
-
-    const handleView = async (id) => {
-        setLoading(true);
-        try {
-            const response = await categoryService.getCategoryById(id);
-            if (response.success) {
-                setSelectedCategory(response.data);
-                setIsViewModalOpen(true);
-            }
-        } catch (error) {
-            alert('Failed to fetch category details');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleEdit = (category) => {
-        setEditFormData({
-            id: category.id,
-            name: category.name,
-            beforeImage: category.beforeImage,
-            afterImage: category.afterImage,
-            is_active: category.is_active,
-            seq_num: category.seq_num
-        });
-        setIsEditModalOpen(true);
-    };
-
-    const executeUpdate = async () => {
+    const executeEditCat = async () => {
         setUpdating(true);
         try {
-            const { id, ...dataToUpdate } = editFormData;
-            const response = await categoryService.patchCategory(id, dataToUpdate);
-            if (response.success) {
-                setIsEditModalOpen(false);
+            const { id, ...data } = editCatForm;
+            const res = await categoryService.patchCategory(id, data);
+            if (res.success) {
+                setIsEditCatOpen(false);
                 fetchCategories(page, limit);
             }
-        } catch (error) {
-            alert('Failed to update category: ' + (error.response?.data?.message || error.message));
-        } finally {
-            setUpdating(false);
-            setConfirmConfig({ ...confirmConfig, isOpen: false });
-        }
+        } catch (error) { alert('Error: ' + error.message); }
+        finally { setUpdating(false); setConfirmConfig(p => ({ ...p, isOpen: false })); }
     };
 
-    const handleUpdate = (e) => {
-        if (e) e.preventDefault();
-        setConfirmConfig({
-            isOpen: true,
-            type: 'warning',
-            title: 'Confirm Profile Update',
-            message: 'Is this final? This will re-calibrate the neural links for this category.',
-            onConfirm: executeUpdate
-        });
-    };
-
-    const executeDelete = async (id) => {
+    const executeDeleteCat = async (id) => {
         setLoading(true);
         try {
-            const response = await categoryService.deleteCategory(id);
-            if (response.success) {
-                fetchCategories(page, limit);
+            await categoryService.deleteCategory(id);
+            fetchCategories(page, limit);
+        } catch (error) { alert('Error: ' + error.message); }
+        finally { setLoading(false); setConfirmConfig(p => ({ ...p, isOpen: false })); }
+    };
+
+    // SubCategory CRUD
+    const executeAddSub = async () => {
+        setAdding(true);
+        try {
+            const payload = { ...subForm, CategoryId: selectedCategory.id };
+            const res = await subCategoryService.addSubcategory(payload);
+            if (res.success) {
+                setIsAddSubOpen(false);
+                setSubForm({ name: '', refImage: '', prompt: '', is_active: true, seq_num: 1 });
+                fetchSubCategories(selectedCategory.id, subPage, subLimit);
             }
-        } catch (error) {
-            alert('Failed to delete category: ' + (error.response?.data?.message || error.message));
-        } finally {
-            setLoading(false);
-            setConfirmConfig({ ...confirmConfig, isOpen: false });
-        }
+        } catch (error) { alert('Error: ' + error.message); }
+        finally { setAdding(false); setConfirmConfig(p => ({ ...p, isOpen: false })); }
     };
 
-    const handleDelete = (id) => {
-        setConfirmConfig({
-            isOpen: true,
-            type: 'danger',
-            title: 'Terminate Category',
-            message: 'Are you sure you want to kill this category? This action is irreversible.',
-            onConfirm: () => executeDelete(id)
-        });
+    const executeEditSub = async () => {
+        setUpdating(true);
+        try {
+            const { id, ...data } = editSubForm;
+            const res = await subCategoryService.patchSubcategory(id, data);
+            if (res.success) {
+                setIsEditSubOpen(false);
+                fetchSubCategories(selectedCategory.id, subPage, subLimit);
+            }
+        } catch (error) { alert('Error: ' + error.message); }
+        finally { setUpdating(false); setConfirmConfig(p => ({ ...p, isOpen: false })); }
     };
 
-    // ── Pagination helpers ───────────────────────────────────────
-    const goToPage = (p) => {
-        const clamped = Math.max(1, Math.min(p, pagination.total_pages));
-        setPage(clamped);
+    const executeDeleteSub = async (id) => {
+        setLoading(true);
+        try {
+            await subCategoryService.deleteSubcategory(id);
+            fetchSubCategories(selectedCategory.id, subPage, subLimit);
+        } catch (error) { alert('Error: ' + error.message); }
+        finally { setLoading(false); setConfirmConfig(p => ({ ...p, isOpen: false })); }
     };
 
-    const handleLimitChange = (newLimit) => {
-        setLimit(newLimit);
-        setPage(1);
+    // Handlers
+    const confirmAction = (title, message, onConfirm, type = 'warning') => {
+        setConfirmConfig({ isOpen: true, title, message, onConfirm, type });
     };
 
-    const formatDate = (str) => {
-        if (!str) return '—';
-        try { return new Date(str).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }); }
-        catch { return str; }
+    const openView = (item, type) => {
+        setViewObject(item);
+        setViewType(type);
+        setIsViewModalOpen(true);
     };
 
-    // Page number buttons
-    const pageNumbers = () => {
-        const total = pagination.total_pages;
-        const current = pagination.current_page;
+    const getPageNumbers = (total, current) => {
         if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
         const pages = new Set([1, total, current, current - 1, current + 1].filter(p => p >= 1 && p <= total));
         return [...pages].sort((a, b) => a - b);
     };
 
+    const goToPage = (p) => {
+        const clamped = Math.max(1, Math.min(p, pagination.total_pages));
+        setPage(clamped);
+    };
+
+    const goToSubPage = (p) => {
+        const clamped = Math.max(1, Math.min(p, subPagination.total_pages));
+        setSubPage(clamped);
+        if (selectedCategory) fetchSubCategories(selectedCategory.id, clamped, subLimit);
+    };
+
+    const filteredCats = categories.filter(c => c.name?.toLowerCase().includes(searchQuery.toLowerCase()));
+    const filteredSubs = subCategories.filter(s => s.name?.toLowerCase().includes(searchQuery.toLowerCase()));
+
     return (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-
-            {/* ── Header ─────────────────────────────────────────────── */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-black tracking-tight text-zinc-900 dark:text-white uppercase italic">Category Matrix</h1>
-                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium italic">
-                        Manage image collection categories for Aesthetic AI.
-                        {pagination.total_items > 0 && (
-                            <span className="ml-2 text-[9px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full uppercase tracking-widest">
-                                {pagination.total_items} items
-                            </span>
-                        )}
-                    </p>
-                </div>
-                <div className="flex items-center gap-2">
+        <div className="h-full flex flex-col gap-6 animate-in fade-in duration-500">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 shrink-0">
+                <div className="flex items-center gap-4">
                     <button
-                        onClick={() => fetchCategories(page, limit)}
-                        disabled={loading}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-xl transition-all font-bold text-[10px] uppercase tracking-widest text-zinc-500 disabled:opacity-50"
+                        onClick={goBack}
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${viewLevel > 0 ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white hover:scale-105' : 'bg-emerald-500 text-white'}`}
+                        disabled={viewLevel === 0}
                     >
-                        <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-                        Refresh
+                        {viewLevel === 0 ? <Layers className="w-4 h-4" /> : <ChevronLeft className="w-5 h-5" />}
                     </button>
-                    <button
-                        onClick={() => setIsAddModalOpen(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-xl transition-all font-bold shadow-lg shadow-emerald-500/20 active:scale-95 text-[10px] uppercase tracking-widest text-white"
-                    >
-                        <Plus className="w-4 h-4" />
-                        Add Category
-                    </button>
-                </div>
-            </div>
-
-            {/* ── Stats ─────────────────────────────────────────────── */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {[
-                    { label: 'Total Units', value: pagination.total_items || categories.length, icon: Layers, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-                    { label: 'Active Matrix', value: categories.filter(c => c.is_active).length, icon: CheckCircle2, color: 'text-indigo-500', bg: 'bg-indigo-500/10' },
-                    { label: 'Total Pages', value: pagination.total_pages || 1, icon: FileText, color: 'text-amber-500', bg: 'bg-amber-500/10' },
-                ].map(stat => {
-                    const StatIcon = stat.icon;
-                    return (
-                        <div key={stat.label} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 flex items-center gap-4 transition-colors duration-300">
-                            <div className={`w-10 h-10 rounded-xl ${stat.bg} flex items-center justify-center flex-shrink-0`}>
-                                <StatIcon className={`w-5 h-5 ${stat.color}`} />
-                            </div>
-                            <div className="min-w-0">
-                                <p className="text-2xl font-bold">{stat.value}</p>
-                                <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest truncate">{stat.label}</p>
-                            </div>
+                    <div>
+                        <div className="flex items-center gap-2 text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-0.5">
+                            <span className={viewLevel === 0 ? 'text-emerald-500' : ''}>Categories</span>
+                            {viewLevel >= 1 && (
+                                <>
+                                    <ChevronRight className="w-2.5 h-2.5" />
+                                    <span className="text-blue-500">{selectedCategory?.name}</span>
+                                </>
+                            )}
                         </div>
-                    );
-                })}
-            </div>
+                        <h1 className="text-xl font-black tracking-tight text-zinc-900 dark:text-white uppercase italic leading-none">
+                            {viewLevel === 0 ? "Category Matrix" : "Sub-Categories Explorer"}
+                        </h1>
+                    </div>
+                </div>
 
-            {/* ── Table Card ────────────────────────────────────────── */}
-            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm dark:shadow-2xl transition-colors duration-300">
-
-                {/* Toolbar */}
-                <div className="p-5 border-b border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-zinc-50/50 dark:bg-zinc-950/20">
-                    <div className="relative flex-1 max-w-sm">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                <div className="flex items-center gap-2">
+                    <div className="relative group">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400 group-focus-within:text-emerald-500 transition-colors" />
                         <input
                             type="text"
-                            placeholder="Search current page..."
+                            placeholder="Search..."
                             value={searchQuery}
-                            onChange={e => setSearchQuery(e.target.value)}
-                            className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl pl-10 pr-4 py-2 text-sm focus:border-emerald-500/50 focus:outline-none transition-all placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl pl-9 pr-3 py-1.5 text-xs w-48 focus:border-emerald-500/50 outline-none transition-all"
                         />
                     </div>
-                    {/* Per-page selector */}
-                    <div className="flex items-center gap-2 text-xs text-zinc-500">
-                        <span className="uppercase tracking-widest font-bold hidden sm:block">Per page</span>
-                        <div className="flex gap-1">
-                            {LIMIT_OPTIONS.map(l => (
-                                <button
-                                    key={l}
-                                    onClick={() => handleLimitChange(l)}
-                                    className={`w-9 h-8 rounded-lg font-bold transition-colors ${limit === l
-                                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
-                                        : 'hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-transparent text-zinc-500'
-                                        }`}
-                                >
-                                    {l}
-                                </button>
-                            ))}
-                        </div>
+                    <div className="px-3 py-1.5 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl text-[10px] font-black uppercase tracking-widest text-zinc-500 flex items-center gap-1.5 border border-zinc-200 dark:border-zinc-700">
+                        {viewLevel === 0 ? (
+                            <>
+                                <Layers className="w-3.5 h-3.5 text-emerald-500" />
+                                <span>{pagination.total_items} Categories</span>
+                            </>
+                        ) : (
+                            <>
+                                <Layers className="w-3.5 h-3.5 text-blue-500" />
+                                <span>{subPagination.total_items} Sub-Categories</span>
+                            </>
+                        )}
                     </div>
+                    <button
+                        onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+                        className="p-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-xl transition-all text-zinc-500 hover:text-emerald-500"
+                    >
+                        {viewMode === 'grid' ? <List className="w-4 h-4" /> : <LayoutGrid className="w-4 h-4" />}
+                    </button>
+                    <button
+                        onClick={() => viewLevel === 0 ? setIsAddCatOpen(true) : setIsAddSubOpen(true)}
+                        className="flex items-center gap-2 px-4 py-1.5 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg"
+                    >
+                        <Plus className="w-3.5 h-3.5" /> Add {viewLevel === 0 ? 'Category' : 'Sub-Category'}
+                    </button>
                 </div>
-
-                {/* Table */}
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="bg-zinc-50/50 dark:bg-zinc-950/40 border-b border-zinc-200 dark:border-zinc-800">
-                                <th className="px-4 py-2.5 text-[9px] font-bold text-zinc-500 uppercase tracking-[0.2em] w-10 text-center">Seq</th>
-                                <th className="px-4 py-2.5 text-[9px] font-bold text-zinc-500 uppercase tracking-[0.2em]">Name / Metadata</th>
-                                <th className="px-4 py-2.5 text-[9px] font-bold text-zinc-500 uppercase tracking-[0.2em] w-32">Transformation</th>
-                                <th className="px-4 py-2.5 text-[9px] font-bold text-zinc-500 uppercase tracking-[0.2em] w-32">Date</th>
-                                <th className="px-4 py-2.5 text-[9px] font-bold text-zinc-500 uppercase tracking-[0.2em] w-24 text-center">Status</th>
-                                <th className="px-4 py-2.5 text-[9px] font-bold text-zinc-500 uppercase tracking-[0.2em] text-right w-36">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800/50">
-                            {loading && categories.length === 0 ? (
-                                <tr>
-                                    <td colSpan="6" className="px-5 py-12 text-center">
-                                        <div className="flex items-center justify-center gap-2 text-zinc-400 text-xs uppercase tracking-widest font-bold">
-                                            <RefreshCw className="w-4 h-4 animate-spin" /> Syncing Matrix...
-                                        </div>
-                                    </td>
-                                </tr>
-                            ) : categories.length === 0 ? (
-                                <tr>
-                                    <td colSpan="6" className="px-5 py-16 text-center">
-                                        <div className="flex flex-col items-center gap-3 opacity-30">
-                                            <Layers className="w-10 h-10 text-emerald-500" />
-                                            <p className="text-zinc-500 uppercase tracking-widest text-[10px] font-black">Matrix Registry Empty</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ) : (
-                                categories.filter(c => c.name?.toLowerCase().includes(searchQuery.toLowerCase())).map((cat, idx) => {
-                                    return (
-                                        <tr key={cat.id || idx} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-colors group">
-                                            {/* Row # */}
-                                            <td className="px-4 py-2.5 font-mono text-[10px] text-zinc-400 dark:text-zinc-600 w-10 text-center">{cat.seq_num || idx + 1}</td>
-
-                                            {/* Name + ID snippet */}
-                                            <td className="px-4 py-2.5">
-                                                <p className="font-bold text-zinc-900 dark:text-zinc-100 text-xs leading-none mb-1 uppercase tracking-tight">
-                                                    {cat.name}
-                                                </p>
-                                                <p className="text-[9px] font-mono text-zinc-400 dark:text-zinc-500 leading-none uppercase">
-                                                    {cat.id}
-                                                </p>
-                                            </td>
-
-                                            {/* Preview Transformation */}
-                                            <td className="px-4 py-2.5 w-32 text-center">
-                                                <div className="flex items-center gap-1.5 justify-center">
-                                                    <div className="w-8 h-8 rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 relative group/img">
-                                                        <img src={cat.beforeImage} className="w-full h-full object-cover" alt="pre" />
-                                                    </div>
-                                                    <ChevronRight className="w-3 h-3 text-zinc-300" />
-                                                    <div className="w-8 h-8 rounded-lg overflow-hidden border border-emerald-500/20 ring-4 ring-emerald-500/5 bg-emerald-50 relative group/img">
-                                                        <img src={cat.afterImage} className="w-full h-full object-cover" alt="post" />
-                                                    </div>
-                                                </div>
-                                            </td>
-
-                                            {/* Date */}
-                                            <td className="px-4 py-2.5 w-32">
-                                                <div className="flex items-center gap-1 text-[10px] text-zinc-500 font-mono whitespace-nowrap">
-                                                    <Calendar className="w-2.5 h-2.5 text-zinc-400" />
-                                                    {formatDate(cat.updatedAt || cat.createdAt)}
-                                                </div>
-                                            </td>
-
-                                            {/* Status */}
-                                            <td className="px-4 py-2.5 w-24 text-center">
-                                                <span className={`inline-flex items-center gap-1 text-[8px] font-bold ${cat.is_active ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20' : 'text-rose-600 dark:text-rose-400 bg-rose-500/10 border-rose-500/20'} px-1.5 py-0.5 rounded-full uppercase tracking-tighter`}>
-                                                    {cat.is_active ? 'Active' : 'Offline'}
-                                                </span>
-                                            </td>
-
-                                            {/* Actions */}
-                                            <td className="px-4 py-2.5 text-right w-44">
-                                                <div className="flex items-center justify-end gap-1.5">
-                                                    <button
-                                                        onClick={() => handleView(cat.id)}
-                                                        className="p-1.5 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-colors border border-emerald-500/10"
-                                                        title="View"
-                                                    >
-                                                        <Eye className="w-3.5 h-3.5" />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleEdit(cat)}
-                                                        className="p-1.5 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 rounded-lg transition-colors border border-amber-500/10"
-                                                        title="Edit"
-                                                    >
-                                                        <Pencil className="w-3.5 h-3.5" />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDelete(cat.id)}
-                                                        className="p-1.5 text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors border border-rose-500/10"
-                                                        title="Delete"
-                                                    >
-                                                        <Trash2 className="w-3.5 h-3.5" />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    );
-                                })
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-
-                {/* ── Pagination Bar ──────────────────────────────────── */}
-                {!loading && pagination.total_pages > 0 && (
-                    <div className="px-5 py-4 border-t border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-3 bg-zinc-50/30 dark:bg-zinc-950/10">
-                        {/* Info */}
-                        <p className="text-xs text-zinc-500 font-medium whitespace-nowrap">
-                            Showing Unit <span className="font-bold text-zinc-700 dark:text-zinc-300">{(pagination.current_page - 1) * pagination.limit + 1}–{Math.min(pagination.current_page * pagination.limit, pagination.total_items)}</span> of <span className="font-bold text-zinc-700 dark:text-zinc-300">{pagination.total_items}</span> Total
-                        </p>
-
-                        {/* Page buttons */}
-                        <div className="flex items-center gap-1 flex-wrap justify-center">
-                            {/* First */}
-                            <button
-                                onClick={() => goToPage(1)}
-                                disabled={page <= 1}
-                                className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                            >
-                                <ChevronsLeft className="w-4 h-4" />
-                            </button>
-                            {/* Prev */}
-                            <button
-                                onClick={() => goToPage(page - 1)}
-                                disabled={page <= 1}
-                                className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                            >
-                                <ChevronLeft className="w-4 h-4" />
-                            </button>
-
-                            {/* Page number buttons */}
-                            {pageNumbers().map((p, i, arr) => (
-                                <React.Fragment key={p}>
-                                    {i > 0 && arr[i - 1] !== p - 1 && (
-                                        <span className="w-8 text-center text-zinc-400 text-sm">…</span>
-                                    )}
-                                    <button
-                                        onClick={() => goToPage(p)}
-                                        className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${page === p
-                                            ? 'bg-emerald-600 text-white shadow shadow-emerald-500/20'
-                                            : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-                                            }`}
-                                    >
-                                        {p}
-                                    </button>
-                                </React.Fragment>
-                            ))}
-
-                            {/* Next */}
-                            <button
-                                onClick={() => goToPage(page + 1)}
-                                disabled={page >= pagination.total_pages}
-                                className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                            >
-                                <ChevronRight className="w-4 h-4" />
-                            </button>
-                            {/* Last */}
-                            <button
-                                onClick={() => goToPage(pagination.total_pages)}
-                                disabled={page >= pagination.total_pages}
-                                className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                            >
-                                <ChevronsRight className="w-4 h-4" />
-                            </button>
-                        </div>
-                    </div>
-                )}
             </div>
 
-
-            {/* ── Add Category Modal ─────────────────────────────── */}
-            {isAddModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
-                    <div
-                        className="absolute inset-0 bg-zinc-950/60 backdrop-blur-sm animate-in fade-in duration-300"
-                        onClick={() => setIsAddModalOpen(false)}
-                    />
-                    <div className="relative w-full max-w-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
-                        <div className="p-8 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/20 flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                                <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-600">
-                                    <Plus className="w-6 h-6" />
+            {/* Level 0: Categories */}
+            {viewLevel === 0 && (
+                viewMode === 'grid' ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 overflow-y-auto pb-10">
+                        {loading ? <div className="col-span-full py-10 flex justify-center"><RefreshCw className="w-6 h-6 animate-spin text-zinc-400" /></div> :
+                            filteredCats.map(cat => (
+                                <div key={cat.id} onClick={() => handleCategoryClick(cat)} className="group relative bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] p-7 hover:border-emerald-500/50 transition-all duration-300 shadow-sm hover:shadow-2xl hover:shadow-emerald-500/10 cursor-pointer flex flex-col h-full">
+                                    <div className="flex justify-end items-start mb-4">
+                                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity ml-auto">
+                                            <button className="p-2.5 bg-zinc-50 dark:bg-zinc-800 rounded-xl hover:text-emerald-500 transition-colors shadow-sm" onClick={(e) => { e.stopPropagation(); openView(cat, 'Category'); }}><Eye className="w-4 h-4" /></button>
+                                            <button className="p-2.5 bg-zinc-50 dark:bg-zinc-800 rounded-xl hover:text-amber-500 transition-colors shadow-sm" onClick={(e) => { e.stopPropagation(); setEditCatForm({ ...cat }); setIsEditCatOpen(true); }}><Pencil className="w-4 h-4" /></button>
+                                            <button className="p-2.5 bg-zinc-50 dark:bg-zinc-800 rounded-xl hover:text-rose-500 transition-colors shadow-sm" onClick={(e) => { e.stopPropagation(); confirmAction('Delete Category', 'Delete irreversible?', () => executeDeleteCat(cat.id), 'danger'); }}><Trash2 className="w-4 h-4" /></button>
+                                        </div>
+                                    </div>
+                                    <div className="flex-1 flex flex-col items-center">
+                                        {cat.beforeImage ? (
+                                            <div className="w-32 h-32 rounded-3xl overflow-hidden mb-6 border-2 border-emerald-50 dark:border-zinc-800 shadow-lg group-hover:scale-105 transition-transform">
+                                                <img src={cat.beforeImage} className="w-full h-full object-cover" />
+                                            </div>
+                                        ) : (
+                                            <div className="w-32 h-32 rounded-3xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center mb-6">
+                                                <ImageIcon className="w-8 h-8 text-zinc-300" />
+                                            </div>
+                                        )}
+                                        <h3 className="text-xl font-black text-zinc-900 dark:text-white mb-2 group-hover:text-emerald-500 transition-colors uppercase leading-tight text-center">{cat.name}</h3>
+                                        <span className={`inline-flex items-center text-[8px] font-black ${cat.is_active ? 'text-emerald-600 bg-emerald-500/10' : 'text-rose-600 bg-rose-500/10'} px-2 py-1 rounded-sm uppercase tracking-widest`}>{cat.is_active ? 'Active' : 'Offline'}</span>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h2 className="text-xl font-bold uppercase tracking-tight">Add New Category</h2>
-                                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400">Initialize Registry Entry</p>
-                                </div>
-                            </div>
-                            <button
-                                onClick={() => setIsAddModalOpen(false)}
-                                className="p-2 rounded-xl hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors"
-                            >
-                                <X className="w-6 h-6" />
-                            </button>
+                            ))}
+                    </div>
+                ) : (
+                    <div className="flex-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm overflow-hidden flex flex-col">
+                        <div className="px-6 py-3 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/50 flex flex-row items-center text-[9px] font-black text-zinc-400 uppercase tracking-widest">
+                            <div className="w-16">Image</div>
+                            <div className="flex-1">Name</div>
+                            <div className="w-32 text-center">Status</div>
+                            <div className="w-32 text-right px-4">Actions</div>
                         </div>
+                        <div className="flex-1 overflow-y-auto">
+                            {loading ? <div className="py-10 flex justify-center"><RefreshCw className="w-6 h-6 animate-spin text-zinc-400" /></div> :
+                                filteredCats.map(cat => (
+                                    <div key={cat.id} onClick={() => handleCategoryClick(cat)} className="group flex items-center px-6 py-3 hover:bg-emerald-500/5 border-b border-zinc-100 dark:border-zinc-800 transition-colors cursor-pointer">
+                                        <div className="w-16">
+                                            <div className="w-10 h-10 rounded-lg overflow-hidden bg-zinc-100">{cat.beforeImage && <img src={cat.beforeImage} className="w-full h-full object-cover" />}</div>
+                                        </div>
+                                        <div className="flex-1 font-black text-[12px] text-zinc-900 dark:text-white uppercase italic group-hover:text-emerald-500">{cat.name}</div>
+                                        <div className="w-32 text-center"><span className={`text-[8px] font-black ${cat.is_active ? 'text-emerald-600 px-2 py-1 bg-emerald-500/10 rounded-full' : 'text-rose-600 px-2 py-1 bg-rose-500/10 rounded-full'}`}>{cat.is_active ? 'Active' : 'Offline'}</span></div>
+                                        <div className="w-32 flex items-center justify-end gap-1.5 px-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button className="p-1.5 hover:bg-zinc-100 rounded-lg text-zinc-500 hover:text-blue-500 transition-all" onClick={(e) => { e.stopPropagation(); openView(cat, 'Category'); }}><Eye className="w-4 h-4" /></button>
+                                            <button className="p-1.5 hover:bg-zinc-100 rounded-lg text-zinc-500 hover:text-amber-500 transition-all" onClick={(e) => { e.stopPropagation(); setEditCatForm({ ...cat }); setIsEditCatOpen(true); }}><Pencil className="w-4 h-4" /></button>
+                                            <button className="p-1.5 hover:bg-zinc-100 rounded-lg text-zinc-500 hover:text-rose-500 transition-all" onClick={(e) => { e.stopPropagation(); confirmAction('Delete Category', 'Delete irreversible?', () => executeDeleteCat(cat.id), 'danger'); }}><Trash2 className="w-4 h-4" /></button>
+                                        </div>
+                                    </div>
+                                ))}
+                        </div>
+                    </div>
+                )
+            )}
 
-                        <form onSubmit={handleAddCategory} className="p-8 space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {/* Name */}
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Category Name</label>
-                                    <input
-                                        required
-                                        type="text"
-                                        value={categoryFormData.name}
-                                        onChange={e => setCategoryFormData({ ...categoryFormData, name: e.target.value })}
-                                        placeholder="e.g. Cinematic Portraits"
-                                        className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-5 py-3.5 text-sm focus:border-emerald-500 outline-none transition-all font-bold"
-                                    />
+            {/* Pagination for Categories */}
+            {viewLevel === 0 && !loading && pagination.total_pages > 0 && (
+                <div className="px-5 py-4 border border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-3 bg-white dark:bg-zinc-900 rounded-2xl shadow-sm shrink-0">
+                    <p className="text-xs text-zinc-500 font-medium whitespace-nowrap">
+                        Displaying <span className="font-bold text-zinc-700 dark:text-zinc-300">{(pagination.current_page - 1) * pagination.limit + 1}–{Math.min(pagination.current_page * pagination.limit, pagination.total_items)}</span> of <span className="font-bold text-zinc-700 dark:text-zinc-300">{pagination.total_items}</span> Categories
+                    </p>
+                    <div className="flex items-center gap-1 flex-wrap justify-center">
+                        <button onClick={() => goToPage(1)} disabled={page <= 1} className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-30 transition-colors">
+                            <ChevronsLeft className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => goToPage(page - 1)} disabled={page <= 1} className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-30 transition-colors">
+                            <ChevronLeft className="w-4 h-4" />
+                        </button>
+                        {getPageNumbers(pagination.total_pages, pagination.current_page).map((p, i, arr) => (
+                            <React.Fragment key={p}>
+                                {i > 0 && arr[i - 1] !== p - 1 && <span className="w-8 text-center text-zinc-400 text-sm">…</span>}
+                                <button onClick={() => goToPage(p)} className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${page === p ? 'bg-emerald-600 text-white shadow shadow-emerald-500/20' : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'}`}>{p}</button>
+                            </React.Fragment>
+                        ))}
+                        <button onClick={() => goToPage(page + 1)} disabled={page >= pagination.total_pages} className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-30 transition-colors">
+                            <ChevronRight className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => goToPage(pagination.total_pages)} disabled={page >= pagination.total_pages} className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-30 transition-colors">
+                            <ChevronsRight className="w-4 h-4" />
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Level 1: SubCategories */}
+            {viewLevel === 1 && (
+                viewMode === 'grid' ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 overflow-y-auto pb-10">
+                        {loading ? <div className="col-span-full py-10 flex justify-center"><RefreshCw className="w-6 h-6 animate-spin text-zinc-400" /></div> :
+                            filteredSubs.map(sub => (
+                                <div key={sub.id} className="group relative bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] p-7 hover:border-blue-500/50 transition-all duration-300 shadow-sm flex flex-col h-full">
+                                    <div className="flex justify-end items-start mb-4">
+                                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity ml-auto">
+                                            <button className="p-2.5 bg-zinc-50 dark:bg-zinc-800 rounded-xl hover:text-blue-500 transition-colors shadow-sm" onClick={() => openView(sub, 'SubCategory')}><Eye className="w-4 h-4" /></button>
+                                            <button className="p-2.5 bg-zinc-50 dark:bg-zinc-800 rounded-xl hover:text-amber-500 transition-colors shadow-sm" onClick={() => { setEditSubForm({ ...sub }); setIsEditSubOpen(true); }}><Pencil className="w-4 h-4" /></button>
+                                            <button className="p-2.5 bg-zinc-50 dark:bg-zinc-800 rounded-xl hover:text-rose-500 transition-colors shadow-sm" onClick={() => confirmAction('Delete SubCategory', 'Delete irreversible?', () => executeDeleteSub(sub.id), 'danger')}><Trash2 className="w-4 h-4" /></button>
+                                        </div>
+                                    </div>
+                                    <div className="flex-1 text-center">
+                                        {sub.refImage ? (
+                                            <div className="w-full h-40 rounded-3xl overflow-hidden mb-6 border group-hover:border-blue-500/30 transition-all shadow-md"><img src={sub.refImage} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" /></div>
+                                        ) : (
+                                            <div className="w-full h-40 rounded-3xl bg-zinc-100 flex items-center justify-center mb-6"><ImageIcon className="w-8 h-8 text-zinc-300" /></div>
+                                        )}
+                                        <h3 className="text-lg font-black text-zinc-900 dark:text-white mb-2 uppercase leading-tight group-hover:text-blue-500 transition-colors">{sub.name}</h3>
+                                        <p className="text-[10px] text-zinc-500 line-clamp-2 mb-4 font-medium px-4">{sub.prompt}</p>
+                                        <span className={`inline-flex items-center text-[8px] font-black ${sub.is_active ? 'text-blue-600 bg-blue-500/10' : 'text-rose-600 bg-rose-500/10'} px-2.5 py-1 rounded-sm uppercase tracking-widest`}>{sub.is_active ? 'Active' : 'Offline'}</span>
+                                    </div>
                                 </div>
-                                {/* Seq Num */}
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Sequence Number</label>
-                                    <input
-                                        required
-                                        type="number"
-                                        value={categoryFormData.seq_num}
-                                        onChange={e => setCategoryFormData({ ...categoryFormData, seq_num: parseInt(e.target.value) })}
-                                        className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-5 py-3.5 text-sm focus:border-emerald-500 outline-none transition-all font-bold font-mono"
-                                    />
-                                </div>
-                                {/* Before Image */}
-                                <div className="space-y-2 col-span-1 md:col-span-2">
-                                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Before Image URL</label>
-                                    <input
-                                        required
-                                        type="url"
-                                        value={categoryFormData.beforeImage}
-                                        onChange={e => setCategoryFormData({ ...categoryFormData, beforeImage: e.target.value })}
-                                        placeholder="https://..."
-                                        className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-5 py-3.5 text-sm focus:border-emerald-500 outline-none transition-all font-semibold"
-                                    />
-                                </div>
-                                {/* After Image */}
-                                <div className="space-y-2 col-span-1 md:col-span-2">
-                                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">After Image URL</label>
-                                    <input
-                                        required
-                                        type="url"
-                                        value={categoryFormData.afterImage}
-                                        onChange={e => setCategoryFormData({ ...categoryFormData, afterImage: e.target.value })}
-                                        placeholder="https://..."
-                                        className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-5 py-3.5 text-sm focus:border-emerald-500 outline-none transition-all font-semibold"
-                                    />
-                                </div>
-                                {/* Status */}
-                                <div className="flex items-center gap-4 py-2 col-span-1 md:col-span-2">
-                                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Status</label>
-                                    <button
-                                        type="button"
-                                        onClick={() => setCategoryFormData({ ...categoryFormData, is_active: !categoryFormData.is_active })}
-                                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${categoryFormData.is_active
-                                            ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
-                                            : 'bg-zinc-100 text-zinc-400 border border-zinc-200'
-                                            }`}
-                                    >
-                                        {categoryFormData.is_active ? 'Active' : 'Offline'}
-                                    </button>
+                            ))}
+                    </div>
+                ) : (
+                    <div className="flex-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm overflow-hidden flex flex-col">
+                        <div className="px-6 py-3 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/50 flex flex-row items-center text-[9px] font-black text-zinc-400 uppercase tracking-widest">
+                            <div className="w-16">Image</div>
+                            <div className="flex-1">Name</div>
+                            <div className="w-1/3">Prompt Preview</div>
+                            <div className="w-32 text-center">Status</div>
+                            <div className="w-32 text-right px-4">Actions</div>
+                        </div>
+                        <div className="flex-1 overflow-y-auto">
+                            {loading ? <div className="py-10 flex justify-center"><RefreshCw className="w-6 h-6 animate-spin text-zinc-400" /></div> :
+                                filteredSubs.map(sub => (
+                                    <div key={sub.id} className="group flex items-center px-6 py-3 hover:bg-blue-500/5 border-b border-zinc-100 dark:border-zinc-800 transition-colors">
+                                        <div className="w-16">
+                                            <div className="w-10 h-10 rounded-lg overflow-hidden bg-zinc-100">{sub.refImage && <img src={sub.refImage} className="w-full h-full object-cover" />}</div>
+                                        </div>
+                                        <div className="flex-1 font-black text-[12px] text-zinc-900 dark:text-white uppercase italic group-hover:text-blue-500 transition-colors">{sub.name}</div>
+                                        <div className="w-1/3 pr-8"><p className="text-[10px] text-zinc-500 truncate font-medium">{sub.prompt}</p></div>
+                                        <div className="w-32 text-center"><span className={`text-[8px] font-black ${sub.is_active ? 'text-blue-600 px-2 py-1 bg-blue-500/10 rounded-full' : 'text-rose-600 px-2 py-1 bg-rose-500/10 rounded-full'}`}>{sub.is_active ? 'Active' : 'Offline'}</span></div>
+                                        <div className="w-32 flex items-center justify-end gap-1.5 px-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button className="p-1.5 hover:bg-zinc-100 rounded-lg text-zinc-500 hover:text-blue-500 transition-all" onClick={() => openView(sub, 'SubCategory')}><Eye className="w-4 h-4" /></button>
+                                            <button className="p-1.5 hover:bg-zinc-100 rounded-lg text-zinc-500 hover:text-amber-500 transition-all" onClick={() => { setEditSubForm({ ...sub }); setIsEditSubOpen(true); }}><Pencil className="w-4 h-4" /></button>
+                                            <button className="p-1.5 hover:bg-zinc-100 rounded-lg text-zinc-500 hover:text-rose-500 transition-all" onClick={() => confirmAction('Delete SubCategory', 'Delete irreversible?', () => executeDeleteSub(sub.id), 'danger')}><Trash2 className="w-4 h-4" /></button>
+                                        </div>
+                                    </div>
+                                ))}
+                        </div>
+                    </div>
+                )
+            )}
+
+            {/* Pagination for SubCategories */}
+            {viewLevel === 1 && !loading && subPagination.total_pages > 0 && (
+                <div className="px-5 py-4 border border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-3 bg-white dark:bg-zinc-900 rounded-2xl shadow-sm shrink-0">
+                    <p className="text-xs text-zinc-500 font-medium whitespace-nowrap">
+                        Displaying <span className="font-bold text-zinc-700 dark:text-zinc-300">{(subPagination.current_page - 1) * subPagination.limit + 1}–{Math.min(subPagination.current_page * subPagination.limit, subPagination.total_items)}</span> of <span className="font-bold text-zinc-700 dark:text-zinc-300">{subPagination.total_items}</span> Sub-Categories
+                    </p>
+                    <div className="flex items-center gap-1 flex-wrap justify-center">
+                        <button onClick={() => goToSubPage(1)} disabled={subPage <= 1} className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-30 transition-colors">
+                            <ChevronsLeft className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => goToSubPage(subPage - 1)} disabled={subPage <= 1} className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-30 transition-colors">
+                            <ChevronLeft className="w-4 h-4" />
+                        </button>
+                        {getPageNumbers(subPagination.total_pages, subPagination.current_page).map((p, i, arr) => (
+                            <React.Fragment key={p}>
+                                {i > 0 && arr[i - 1] !== p - 1 && <span className="w-8 text-center text-zinc-400 text-sm">…</span>}
+                                <button onClick={() => goToSubPage(p)} className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${subPage === p ? 'bg-blue-600 text-white shadow shadow-blue-500/20' : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'}`}>{p}</button>
+                            </React.Fragment>
+                        ))}
+                        <button onClick={() => goToSubPage(subPage + 1)} disabled={subPage >= subPagination.total_pages} className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-30 transition-colors">
+                            <ChevronRight className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => goToSubPage(subPagination.total_pages)} disabled={subPage >= subPagination.total_pages} className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-30 transition-colors">
+                            <ChevronsRight className="w-4 h-4" />
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* View Details Modal */}
+            {isViewModalOpen && viewObject && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-zinc-950/80 backdrop-blur-xl animate-in fade-in duration-500">
+                    <div className="bg-white dark:bg-zinc-900 border border-white/20 dark:border-zinc-800 rounded-[3rem] w-full max-w-2xl shadow-3xl animate-in zoom-in-95 overflow-hidden flex flex-col max-h-[85vh]">
+                        <div className={`p-8 bg-gradient-to-br ${viewType === 'Category' ? 'from-emerald-500/10 via-emerald-500/5' : 'from-blue-500/10 via-blue-500/5'} to-transparent border-b border-zinc-200 dark:border-zinc-800 relative flex-shrink-0`}>
+                            <button onClick={() => setIsViewModalOpen(false)} className="absolute top-8 right-8 p-3 hover:bg-white dark:hover:bg-zinc-800 rounded-xl transition-all shadow-sm border border-zinc-200"><X className="w-5 h-5 text-zinc-500" /></button>
+                            <h2 className="text-2xl font-black text-zinc-900 dark:text-white uppercase italic">{viewType} Details</h2>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-10 custom-scrollbar">
+                            <div className="flex justify-center mb-8">
+                                <div className="w-48 h-48 rounded-[2rem] overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-xl">
+                                    <img src={viewType === 'Category' ? viewObject.beforeImage : viewObject.refImage} className="w-full h-full object-cover" />
                                 </div>
                             </div>
+                            <div className="space-y-6">
+                                <div>
+                                    <h3 className="text-[10px] uppercase font-black text-zinc-500 tracking-widest pl-1">Name</h3>
+                                    <p className="font-black text-xl italic uppercase text-zinc-900">{viewObject.name}</p>
+                                </div>
+                                {viewType === 'SubCategory' && (
+                                    <div>
+                                        <h3 className="text-[10px] uppercase font-black text-zinc-500 tracking-widest pl-1 mb-2">Prompt Setup</h3>
+                                        <p className="font-medium text-sm bg-zinc-50 dark:bg-zinc-950 p-6 rounded-[2rem] border border-zinc-200 dark:border-zinc-800 leading-relaxed text-zinc-700">{viewObject.prompt}</p>
+                                    </div>
+                                )}
+                                <div className="flex gap-4">
+                                    <div className="flex-1 p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
+                                        <h3 className="text-[10px] uppercase font-black text-zinc-500 tracking-widest">Sequence</h3>
+                                        <p className="font-black text-sm">{viewObject.seq_num}</p>
+                                    </div>
+                                    <div className="flex-1 p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
+                                        <h3 className="text-[10px] uppercase font-black text-zinc-500 tracking-widest">Status</h3>
+                                        <p className={`font-black text-sm ${viewObject.is_active ? 'text-emerald-500' : 'text-rose-500'}`}>{viewObject.is_active ? 'Active' : 'Offline'}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
+            {/* ADD CATEGORY MODAL */}
+            {isAddCatOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-zinc-950/80 backdrop-blur-xl animate-in fade-in duration-500">
+                    <div className="bg-white dark:bg-zinc-900 border border-white/20 dark:border-zinc-800 rounded-[3rem] w-full max-w-2xl shadow-3xl animate-in zoom-in-95 flex flex-col max-h-[85vh]">
+                        <div className="p-8 bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent border-b border-zinc-200 relative flex-shrink-0">
+                            <button onClick={() => setIsAddCatOpen(false)} className="absolute top-8 right-8 p-3 hover:bg-white rounded-xl shadow-sm border border-zinc-200"><X className="w-5 h-5" /></button>
+                            <h2 className="text-2xl font-black uppercase tracking-tight italic">Add Category Node</h2>
+                        </div>
+                        <form onSubmit={(e) => { e.preventDefault(); confirmAction('Save Category', 'Create this root entity?', executeAddCat, 'success'); }} className="flex-1 overflow-y-auto p-10 space-y-6 custom-scrollbar">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Category Name</label>
+                                <input required value={catForm.name} onChange={e => setCatForm({ ...catForm, name: e.target.value })} className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-5 py-3.5 text-sm outline-none font-bold focus:border-emerald-500/50" />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Sequence Number</label>
+                                <input required type="number" value={catForm.seq_num} onChange={e => setCatForm({ ...catForm, seq_num: parseInt(e.target.value) })} className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-5 py-3.5 text-sm outline-none font-bold focus:border-emerald-500/50" />
+                            </div>
+                            <div className="-mx-1">
+                                <ImageUploader
+                                    label="Before Image (Upload)"
+                                    folderName="Category/before"
+                                    value={catForm.beforeImage}
+                                    onChange={(url) => setCatForm({ ...catForm, beforeImage: url })}
+                                />
+                            </div>
+                            <div className="space-y-2 flex items-center justify-between bg-emerald-50/50 p-5 rounded-2xl border border-emerald-500/20">
+                                <label className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">Active Status</label>
+                                <input type="checkbox" checked={catForm.is_active} onChange={e => setCatForm({ ...catForm, is_active: e.target.checked })} className="w-5 h-5 accent-emerald-500" />
+                            </div>
                             <div className="pt-6 flex gap-3">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsAddModalOpen(false)}
-                                    className="flex-1 px-6 py-4 bg-zinc-100 hover:bg-zinc-200 text-zinc-600 rounded-[1.5rem] font-bold transition-all text-xs uppercase tracking-widest"
-                                >
-                                    Discard
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={adding}
-                                    className="flex-[2] px-6 py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-[1.5rem] font-bold transition-all shadow-lg shadow-emerald-500/20 active:scale-95 text-xs uppercase tracking-widest disabled:opacity-50 flex items-center justify-center gap-2"
-                                >
-                                    {adding ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                                    Commit Category
+                                <button type="submit" disabled={adding} className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl py-4 font-black uppercase tracking-widest text-[10px] shadow-lg shadow-emerald-500/20 transition-all flex justify-center items-center gap-2">
+                                    {adding ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Submit
                                 </button>
                             </div>
                         </form>
                     </div>
                 </div>
             )}
-            {/* ── View Category Detail Modal ───────────────────────── */}
-            {isViewModalOpen && selectedCategory && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
-                    <div className="absolute inset-0 bg-zinc-950/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setIsViewModalOpen(false)} />
-                    <div className="relative w-full max-w-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
-                        <div className="p-8 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/20 flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                                <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-600">
-                                    <Layers className="w-6 h-6" />
-                                </div>
-                                <div>
-                                    <h2 className="text-xl font-bold uppercase tracking-tight">{selectedCategory.name}</h2>
-                                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400">Node Detailed View</p>
-                                </div>
-                            </div>
-                            <button onClick={() => setIsViewModalOpen(false)} className="p-2 rounded-xl hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors text-zinc-500">
-                                <X className="w-6 h-6" />
-                            </button>
-                        </div>
 
-                        <div className="p-8 space-y-8 overflow-y-auto max-h-[70vh] custom-scrollbar">
-                            {/* Matrix Previews */}
+            {/* EDIT CATEGORY MODAL */}
+            {isEditCatOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-zinc-950/80 backdrop-blur-xl animate-in fade-in duration-500">
+                    <div className="bg-white dark:bg-zinc-900 border border-white/20 dark:border-zinc-800 rounded-[3rem] w-full max-w-2xl shadow-3xl animate-in zoom-in-95 flex flex-col max-h-[85vh]">
+                        <div className="p-8 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent border-b border-zinc-200 relative flex-shrink-0">
+                            <button onClick={() => setIsEditCatOpen(false)} className="absolute top-8 right-8 p-3 hover:bg-white rounded-xl shadow-sm border border-zinc-200"><X className="w-5 h-5" /></button>
+                            <h2 className="text-2xl font-black uppercase tracking-tight italic">Edit Category Node</h2>
+                        </div>
+                        <form onSubmit={(e) => { e.preventDefault(); confirmAction('Update Category', 'Save these modifications?', executeEditCat, 'warning'); }} className="flex-1 overflow-y-auto p-10 space-y-6 custom-scrollbar">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Category Name</label>
+                                <input required value={editCatForm.name} onChange={e => setEditCatForm({ ...editCatForm, name: e.target.value })} className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 rounded-2xl px-5 py-3.5 text-sm font-bold focus:border-amber-500/50 outline-none" />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Sequence Number</label>
+                                <input required type="number" value={editCatForm.seq_num} onChange={e => setEditCatForm({ ...editCatForm, seq_num: parseInt(e.target.value) })} className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-5 py-3.5 text-sm outline-none font-bold focus:border-amber-500/50" />
+                            </div>
+                            <div className="-mx-1">
+                                <ImageUploader
+                                    label="Before Image (Upload)"
+                                    folderName="Category/before"
+                                    value={editCatForm.beforeImage}
+                                    onChange={(url) => setEditCatForm({ ...editCatForm, beforeImage: url })}
+                                />
+                            </div>
+                            <div className="space-y-2 flex items-center justify-between bg-amber-50/50 p-5 rounded-2xl border border-amber-500/20">
+                                <label className="text-[10px] font-black text-amber-700 uppercase tracking-widest">Active Status</label>
+                                <input type="checkbox" checked={editCatForm.is_active} onChange={e => setEditCatForm({ ...editCatForm, is_active: e.target.checked })} className="w-5 h-5 accent-amber-500" />
+                            </div>
+                            <div className="pt-6 flex gap-3">
+                                <button type="submit" disabled={updating} className="flex-1 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl py-4 font-black uppercase tracking-widest text-[10px] shadow-lg shadow-amber-500/20 transition-all flex justify-center items-center gap-2">
+                                    {updating ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Update Protocol
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* ADD SUBCATEGORY MODAL */}
+            {isAddSubOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-zinc-950/80 backdrop-blur-xl animate-in fade-in duration-500">
+                    <div className="bg-white dark:bg-zinc-900 border border-white/20 dark:border-zinc-800 rounded-[3rem] w-full max-w-2xl shadow-3xl animate-in zoom-in-95 flex flex-col max-h-[85vh]">
+                        <div className="p-8 bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent border-b border-zinc-200 relative flex-shrink-0">
+                            <button onClick={() => setIsAddSubOpen(false)} className="absolute top-8 right-8 p-3 hover:bg-white rounded-xl shadow-sm border border-zinc-200"><X className="w-5 h-5" /></button>
+                            <h2 className="text-2xl font-black uppercase tracking-tight italic">New Sub-Category</h2>
+                        </div>
+                        <form onSubmit={(e) => { e.preventDefault(); confirmAction('Save SubCategory', 'Deploy new Sub-Category?', executeAddSub, 'success'); }} className="flex-1 overflow-y-auto p-10 space-y-6 custom-scrollbar">
                             <div className="grid grid-cols-2 gap-6">
-                                <div className="space-y-3">
-                                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Input Matrix (Before)</label>
-                                    <div className="aspect-[4/5] rounded-[1.5rem] overflow-hidden border-2 border-zinc-100 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-950 group/img">
-                                        <img src={selectedCategory.beforeImage} className="w-full h-full object-cover transition-transform duration-500 group-hover/img:scale-110" alt="Before" />
-                                    </div>
-                                </div>
-                                <div className="space-y-3">
-                                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Output Matrix (After)</label>
-                                    <div className="aspect-[4/5] rounded-[1.5rem] overflow-hidden border-2 border-emerald-500/20 bg-emerald-50/10 group/img">
-                                        <img src={selectedCategory.afterImage} className="w-full h-full object-cover transition-transform duration-500 group-hover/img:scale-110" alt="After" />
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Node Metadata */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="bg-zinc-50 dark:bg-zinc-950/50 p-4 rounded-2xl border border-zinc-100 dark:border-zinc-800">
-                                    <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Sequence Rank</p>
-                                    <p className="text-lg font-mono font-bold text-emerald-600">#{selectedCategory.seq_num || '0'}</p>
-                                </div>
-                                <div className="bg-zinc-50 dark:bg-zinc-950/50 p-4 rounded-2xl border border-zinc-100 dark:border-zinc-800">
-                                    <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Status Vector</p>
-                                    <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold ${selectedCategory.is_active ? 'text-emerald-600' : 'text-rose-600'} uppercase tracking-widest`}>
-                                        <CheckCircle2 className="w-3.5 h-3.5" />
-                                        {selectedCategory.is_active ? 'Active Node' : 'Inactive'}
-                                    </span>
-                                </div>
-                                <div className="col-span-2 bg-zinc-50 dark:bg-zinc-950/50 p-4 rounded-2xl border border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
-                                    <div>
-                                        <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Neural ID</p>
-                                        <p className="text-xs font-mono text-zinc-400 truncate max-w-[200px]">{selectedCategory.id}</p>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Initialization</p>
-                                        <p className="text-xs font-mono text-zinc-400">{formatDate(selectedCategory.createdAt)}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="p-8 bg-zinc-50/50 dark:bg-zinc-950/20 border-t border-zinc-100 dark:border-zinc-800">
-                            <button
-                                onClick={() => setIsViewModalOpen(false)}
-                                className="w-full py-4 bg-zinc-900 dark:bg-emerald-600 hover:bg-zinc-800 dark:hover:bg-emerald-500 text-white rounded-[1.5rem] font-bold transition-all shadow-xl shadow-emerald-500/10 active:scale-95 text-xs uppercase tracking-widest"
-                            >
-                                Close Terminal
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-            {/* ── Edit Category Modal ──────────────────────────────── */}
-            {isEditModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
-                    <div className="absolute inset-0 bg-zinc-950/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setIsEditModalOpen(false)} />
-                    <div className="relative w-full max-w-3xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
-                        <div className="p-8 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/20 flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                                <div className="p-3 rounded-2xl bg-amber-500/10 text-amber-600">
-                                    <Pencil className="w-6 h-6" />
-                                </div>
-                                <div>
-                                    <h2 className="text-xl font-bold uppercase tracking-tight">Edit Category Node</h2>
-                                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400">Modify Neural Parameters</p>
-                                </div>
-                            </div>
-                            <button onClick={() => setIsEditModalOpen(false)} className="p-2 rounded-xl hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors">
-                                <X className="w-6 h-6" />
-                            </button>
-                        </div>
-
-                        <form onSubmit={handleUpdate} className="p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Node Identity (Name)</label>
-                                    <input
-                                        required
-                                        type="text"
-                                        value={editFormData.name}
-                                        onChange={e => setEditFormData({ ...editFormData, name: e.target.value })}
-                                        className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-5 py-3.5 text-sm focus:border-amber-500 outline-none transition-all font-bold"
-                                        placeholder="Enter category name..."
-                                    />
+                                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">SubCategory Name</label>
+                                    <input required value={subForm.name} onChange={e => setSubForm({ ...subForm, name: e.target.value })} className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 rounded-2xl px-5 py-3.5 text-sm font-bold focus:border-blue-500/50 outline-none" />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Sequence Rank</label>
-                                    <input
-                                        required
-                                        type="number"
-                                        value={editFormData.seq_num}
-                                        onChange={e => setEditFormData({ ...editFormData, seq_num: parseInt(e.target.value) || 0 })}
-                                        className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-5 py-3.5 text-sm focus:border-amber-500 outline-none transition-all font-bold"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Before Matrix URL</label>
-                                    <input
-                                        required
-                                        type="url"
-                                        value={editFormData.beforeImage}
-                                        onChange={e => setEditFormData({ ...editFormData, beforeImage: e.target.value })}
-                                        className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-5 py-3.5 text-sm focus:border-amber-500 outline-none transition-all font-bold"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">After Matrix URL</label>
-                                    <input
-                                        required
-                                        type="url"
-                                        value={editFormData.afterImage}
-                                        onChange={e => setEditFormData({ ...editFormData, afterImage: e.target.value })}
-                                        className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-5 py-3.5 text-sm focus:border-amber-500 outline-none transition-all font-bold"
-                                    />
+                                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Sequence Priority</label>
+                                    <input required type="number" value={subForm.seq_num} onChange={e => setSubForm({ ...subForm, seq_num: parseInt(e.target.value) })} className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 rounded-2xl px-5 py-3.5 text-sm font-bold focus:border-blue-500/50 outline-none" />
                                 </div>
                             </div>
-
-                            <div className="p-6 bg-zinc-50 dark:bg-zinc-950/40 border border-zinc-100 dark:border-zinc-800 rounded-[2rem] flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${editFormData.is_active ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-600'}`}>
-                                        <CheckCircle2 className="w-5 h-5" />
-                                    </div>
-                                    <div>
-                                        <p className="text-[10px] font-black uppercase tracking-tight">Active Protocol</p>
-                                        <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">Toggle production visibility</p>
-                                    </div>
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={() => setEditFormData({ ...editFormData, is_active: !editFormData.is_active })}
-                                    className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 ${editFormData.is_active ? 'bg-emerald-600 shadow-[0_0_15px_rgba(16,185,129,0.3)]' : 'bg-zinc-300 dark:bg-zinc-800'}`}
-                                >
-                                    <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform duration-300 ${editFormData.is_active ? 'translate-x-6' : 'translate-x-1'}`} />
-                                </button>
+                            <div className="-mx-1">
+                                <ImageUploader
+                                    label="Reference Image (Upload)"
+                                    folderName="Category/ref"
+                                    value={subForm.refImage}
+                                    onChange={(url) => setSubForm({ ...subForm, refImage: url })}
+                                />
                             </div>
-
-                            <div className="pt-4 flex gap-3">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsEditModalOpen(false)}
-                                    className="flex-1 px-6 py-4 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 rounded-[1.5rem] font-bold hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all text-xs uppercase tracking-widest"
-                                >
-                                    Abort
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={updating}
-                                    className="flex-[2] px-6 py-4 bg-amber-600 hover:bg-amber-500 text-white rounded-[1.5rem] font-bold transition-all shadow-lg shadow-amber-500/20 active:scale-95 text-xs uppercase tracking-widest disabled:opacity-50 flex items-center justify-center gap-2"
-                                >
-                                    {updating ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                                    Update Node
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 flex items-center gap-2"><Activity className="w-3 h-3 text-blue-500" /> Runtime Prompt Vector</label>
+                                <textarea required value={subForm.prompt} onChange={e => setSubForm({ ...subForm, prompt: e.target.value })} className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 rounded-[2rem] px-6 py-5 text-sm font-medium min-h-[140px] focus:border-blue-500/50 outline-none resize-none" placeholder="Enter configuration prompt..." />
+                            </div>
+                            <div className="space-y-2 flex items-center justify-between bg-blue-50/50 p-5 rounded-2xl border border-blue-500/20">
+                                <label className="text-[10px] font-black text-blue-700 uppercase tracking-widest">Active Status</label>
+                                <input type="checkbox" checked={subForm.is_active} onChange={e => setSubForm({ ...subForm, is_active: e.target.checked })} className="w-5 h-5 accent-blue-500" />
+                            </div>
+                            <div className="pt-6 flex gap-3">
+                                <button type="submit" disabled={adding} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl py-4 font-black uppercase tracking-widest text-[10px] shadow-lg shadow-blue-500/20 transition-all flex justify-center items-center gap-2">
+                                    {adding ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Submit
                                 </button>
                             </div>
                         </form>
                     </div>
                 </div>
             )}
-            {/* ── Confirmation Modal ─────────────────────────────────── */}
-            <ConfirmationModal
-                isOpen={confirmConfig.isOpen}
-                onClose={() => setConfirmConfig({ ...confirmConfig, isOpen: false })}
-                onConfirm={confirmConfig.onConfirm}
-                title={confirmConfig.title}
-                message={confirmConfig.message}
-                type={confirmConfig.type}
-            />
+
+            {/* EDIT SUBCATEGORY MODAL */}
+            {isEditSubOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-zinc-950/80 backdrop-blur-xl animate-in fade-in duration-500">
+                    <div className="bg-white dark:bg-zinc-900 border border-white/20 dark:border-zinc-800 rounded-[3rem] w-full max-w-2xl shadow-3xl animate-in zoom-in-95 flex flex-col max-h-[85vh]">
+                        <div className="p-8 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent border-b border-zinc-200 relative flex-shrink-0">
+                            <button onClick={() => setIsEditSubOpen(false)} className="absolute top-8 right-8 p-3 hover:bg-white rounded-xl shadow-sm border border-zinc-200"><X className="w-5 h-5" /></button>
+                            <h2 className="text-2xl font-black uppercase tracking-tight italic">Modify Sub-Category</h2>
+                        </div>
+                        <form onSubmit={(e) => { e.preventDefault(); confirmAction('Update SubCategory', 'Save these changes?', executeEditSub, 'warning'); }} className="flex-1 overflow-y-auto p-10 space-y-6 custom-scrollbar">
+                            <div className="grid grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">SubCategory Name</label>
+                                    <input required value={editSubForm.name} onChange={e => setEditSubForm({ ...editSubForm, name: e.target.value })} className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 rounded-2xl px-5 py-3.5 text-sm font-bold focus:border-amber-500/50 outline-none" />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Sequence Priority</label>
+                                    <input required type="number" value={editSubForm.seq_num} onChange={e => setEditSubForm({ ...editSubForm, seq_num: parseInt(e.target.value) })} className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 rounded-2xl px-5 py-3.5 text-sm font-bold focus:border-amber-500/50 outline-none" />
+                                </div>
+                            </div>
+                            <div className="-mx-1">
+                                <ImageUploader
+                                    label="Reference Image (Upload)"
+                                    folderName="Category/ref"
+                                    value={editSubForm.refImage}
+                                    onChange={(url) => setEditSubForm({ ...editSubForm, refImage: url })}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">AI Prompt</label>
+                                <textarea required value={editSubForm.prompt} onChange={e => setEditSubForm({ ...editSubForm, prompt: e.target.value })} className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 rounded-[2rem] px-6 py-5 text-sm font-medium min-h-[140px] focus:border-amber-500/50 outline-none resize-none" />
+                            </div>
+                            <div className="space-y-2 flex items-center justify-between bg-amber-50/50 p-5 rounded-2xl border border-amber-500/20">
+                                <label className="text-[10px] font-black text-amber-700 uppercase tracking-widest">Active Status</label>
+                                <input type="checkbox" checked={editSubForm.is_active} onChange={e => setEditSubForm({ ...editSubForm, is_active: e.target.checked })} className="w-5 h-5 accent-amber-500" />
+                            </div>
+                            <div className="pt-6 flex gap-3">
+                                <button type="submit" disabled={updating} className="flex-1 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl py-4 font-black uppercase tracking-widest text-[10px] shadow-lg shadow-amber-500/20 transition-all flex justify-center items-center gap-2">
+                                    {updating ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Update Protocol
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            <ConfirmationModal isOpen={confirmConfig.isOpen} onClose={() => setConfirmConfig(p => ({ ...p, isOpen: false }))} onConfirm={confirmConfig.onConfirm} title={confirmConfig.title} message={confirmConfig.message} type={confirmConfig.type} />
         </div>
     );
 };
-
-const FileText = ({ className }) => (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-        <polyline points="14 2 14 8 20 8" />
-        <line x1="16" y1="13" x2="8" y2="13" />
-        <line x1="16" y1="17" x2="8" y2="17" />
-        <line x1="10" y1="9" x2="8" y2="9" />
-    </svg>
-);
 
 export default Category;
