@@ -18,8 +18,8 @@ const ImageUploader = ({
         setIsUploading(true);
 
         try {
-            // STEP 1: Request Presigned URL from Backend
-            const presignRes = await fetch('https://shark-app-l2rx4.ondigitalocean.app/api/upload/presigned-url', {
+            // STEP 1: Request Presigned URL from Backend using proxied route
+            const presignRes = await fetch('/aesthetic-api/upload/presigned-url', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
