@@ -37,6 +37,7 @@ import TranslatedTopic from './views/pages/kali-linux/TranslatedTopic';
 // PromptVerse AI
 import Prompts from './views/pages/prompt-verse/Prompts';
 import Templates from './views/pages/prompt-verse/Templates';
+import CategoryListPage from './views/pages/prompt-verse/CategoryListPage';
 
 function App() {
     return (
@@ -80,6 +81,7 @@ function App() {
 
                     {/* PromptVerse AI */}
                     <Route path="prompts" element={<Prompts />} />
+                    <Route path="prompts/category-list/:categoryId" element={<CategoryListPage />} />
                     <Route path="templates" element={<Templates />} />
                 </Route>
             </Routes>
